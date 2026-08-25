@@ -1,0 +1,141 @@
+name: audio-notes
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: audio-notes-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: audio_notes
+      POSTGRES_PASSWORD: audio_notes
+      POSTGRES_DB: audio_notes
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U audio_notes"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: audio-notes-redis
+    restart: unless-stopped
+    ports:
+      # Host-side port remapped to 6380 to avoid colliding with other
+      # projects' Redis containers commonly bound to the default 6379.
+      # The container's internal port (used by other services on the
+      # Docker network, e.g. redis://redis:6379/0) is unaffected.
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Local, S3-compatible object storage for development — swap for real
+  # Cloudflare R2 / Supabase / S3 credentials in .env when you're ready to
+  # deploy (see README.md "Deployment"). StorageService talks to whichever
+  # endpoint STORAGE_ENDPOINT points at, so nothing else changes.
+  minio:
+    image: minio/minio:latest
+    container_name: audio-notes-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${STORAGE_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_KEY:-minioadmin}
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # Web console (http://localhost:9001)
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+
+  # One-shot job: creates the bucket named by STORAGE_BUCKET on first run,
+  # then exits. Safe to re-run (ignores "already exists").
+  createbuckets:
+    image: minio/mc:latest
+    container_name: audio-notes-minio-init
+    depends_on:
+      - minio
+    environment:
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-minioadmin}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-minioadmin}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-audio-notes}
+    entrypoint: >
+      sh -c "
+      until mc alias set local http://minio:9000 \"$$STORAGE_ACCESS_KEY\" \"$$STORAGE_SECRET_KEY\"; do sleep 1; done &&
+      (mc mb local/$$STORAGE_BUCKET || true) &&
+      exit 0
+      "
+
+  # Optional convenience services below. Comment these out and run the
+  # backend/worker/frontend directly on your host if you prefer faster
+  # reload loops during development (see README.md "Local Setup").
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: audio-notes-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://audio_notes:audio_notes@postgres:5432/audio_notes
+      REDIS_URL: redis://redis:6379/0
+      STORAGE_ENDPOINT: http://minio:9000
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - ./backend:/app
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: audio-notes-worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://audio_notes:audio_notes@postgres:5432/audio_notes
+      REDIS_URL: redis://redis:6379/0
+      STORAGE_ENDPOINT: http://minio:9000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=2
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: audio-notes-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000/api
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:

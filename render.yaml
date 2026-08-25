@@ -1,0 +1,123 @@
+# Render Blueprint — optional one-shot way to provision every service this
+# project needs. You (the user) run this; Claude does not deploy anything.
+#
+# Usage: Render dashboard -> New -> Blueprint -> point at this repo -> Apply.
+# Values marked `sync: false` are secrets/URLs Render will prompt you for
+# (or that you fill in after the first deploy once dependent service URLs
+# exist — see README.md "Deployment" for the exact order of operations).
+#
+# You can also skip this file entirely and create the four services by hand
+# by following the manual steps in README.md — both paths produce the same
+# result.
+
+envVarGroups:
+  - name: audio-notes-shared
+    envVars:
+      # Using Neon (Postgres) and Upstash (Redis) instead of Render's own
+      # managed Postgres/Key Value services — both have permanently-free
+      # tiers, whereas Render's free Postgres/Redis expire after 30 days.
+      # Fill these in with your own Neon/Upstash connection strings when
+      # prompted (see README.md "Deployment").
+      - key: DATABASE_URL
+        sync: false # postgresql+psycopg://...neon.tech/neondb?sslmode=require
+      - key: REDIS_URL
+        sync: false # rediss://...upstash.io:6379/0?ssl_cert_reqs=CERT_REQUIRED
+      # generateValue lets Render create a cryptographically random secret
+      # itself, since — unlike GNANI_API_KEY/GROQ_API_KEY — nothing external
+      # needs to match this value.
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: JWT_EXPIRES_MINUTES
+        value: "10080"
+      - key: GNANI_API_KEY
+        sync: false
+      - key: GNANI_API_URL
+        value: https://api.vachana.ai/stt/v3
+      - key: GNANI_LANGUAGE_CODE
+        value: en-IN
+      - key: GNANI_TRANSCRIPT_FORMAT
+        value: transcribe
+      - key: GNANI_CHUNK_SECONDS
+        value: "30"
+      - key: GNANI_TIMEOUT_SECONDS
+        value: "45"
+      - key: GNANI_MAX_RETRIES
+        value: "3"
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_API_URL
+        value: https://api.groq.com/openai/v1/chat/completions
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      - key: GROQ_TIMEOUT_SECONDS
+        value: "60"
+      - key: GROQ_MAX_RETRIES
+        value: "3"
+      - key: GROQ_MAX_INPUT_CHARS
+        value: "12000"
+      - key: STORAGE_ENDPOINT
+        sync: false
+      - key: STORAGE_BUCKET
+        sync: false
+      - key: STORAGE_ACCESS_KEY
+        sync: false
+      - key: STORAGE_SECRET_KEY
+        sync: false
+      - key: STORAGE_REGION
+        value: auto
+      - key: STORAGE_USE_PATH_STYLE
+        value: "true"
+      - key: STORAGE_PUBLIC_BASE_URL
+        sync: false
+      - key: MAX_UPLOAD_SIZE_MB
+        value: "200"
+      - key: MIN_AUDIO_DURATION_SECONDS
+        value: "120"
+      - key: FRONTEND_URL
+        sync: false # set to your deployed frontend URL(s), comma-separated for multiple origins
+
+services:
+  - type: web
+    name: audio-notes-backend
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /api/health
+    envVarGroups:
+      - audio-notes-shared
+    envVars:
+      - key: BACKEND_URL
+        sync: false # set to this service's own Render URL once known
+
+  - type: worker
+    name: audio-notes-worker
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: celery -A app.workers.celery_app worker --loglevel=info --concurrency=2
+    plan: starter
+    envVarGroups:
+      - audio-notes-shared
+
+  - type: web
+    name: audio-notes-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false # set to https://<audio-notes-backend-url>/api
+      - key: VITE_GITHUB_REPO_URL
+        sync: false
+    routes:
+      # React Router uses client-side routing (/notes/:id, /architecture) —
+      # every path must fall back to index.html.
+      - type: rewrite
+        source: /*
+        destination: /index.html
