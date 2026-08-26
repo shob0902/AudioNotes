@@ -3,8 +3,8 @@ Application-wide exception hierarchy.
 
 Every exception carries a `user_message` that is safe to show directly in
 the UI (no stack traces, no internal URLs, no secrets) and an optional
-`retryable` flag the worker uses to decide whether a Retry button should be
-offered / whether Celery should auto-retry.
+`retryable` flag, logged alongside the failure for observability (whether a
+Retry button makes sense for this kind of failure).
 """
 
 

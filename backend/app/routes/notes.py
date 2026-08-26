@@ -13,13 +13,13 @@ app/routes/auth.py) and only ever operates on that user's own notes —
 another user's note id returns 404, not 403, so its existence isn't leaked.
 
 The upload endpoint does ONLY fast, synchronous work: validate, store,
-create the DB row, enqueue the background task. It never waits on Gnani or
-Groq — see app/workers/tasks.py for the actual processing pipeline.
+create the DB row, schedule the background task. It never waits on Gnani
+or Groq — see app/workers/tasks.py for the actual processing pipeline.
 """
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, UploadFile, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -38,7 +38,7 @@ from app.services.storage_service import StorageService
 from app.utils.audio import sanitize_filename, validate_and_probe_audio
 from app.utils.exceptions import StorageError, ValidationError
 from app.utils.logging import get_logger
-from app.workers.celery_app import celery_app
+from app.workers.tasks import run_note_processing
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/notes", tags=["notes"])
@@ -61,6 +61,7 @@ def _get_owned_note(db: Session, note_id: uuid.UUID, user_id: uuid.UUID) -> Note
 @router.post("", response_model=NoteCreateResponse, status_code=status.HTTP_202_ACCEPTED)
 async def create_note(
     file: UploadFile,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
     current_user_id: uuid.UUID = Depends(get_current_user_id),
@@ -120,19 +121,7 @@ async def create_note(
     note.status = NoteStatus.QUEUED
     db.commit()
 
-    try:
-        celery_app.send_task("process_note", args=[str(note.id)])
-    except Exception as exc:
-        # The note was validated and stored successfully — only enqueueing
-        # failed (e.g. Redis unreachable). Mark it failed now rather than
-        # leaving it stuck at "queued" forever with no task ever picking it
-        # up; the user can retry once the queue is healthy again.
-        note.status = NoteStatus.FAILED
-        note.error_message = "Could not start background processing. Please try again."
-        db.commit()
-        logger.error("note.enqueue_failed", extra={"note_id": str(note.id), "error": str(exc)})
-        return NoteCreateResponse(id=note.id, status=note.status)
-
+    background_tasks.add_task(run_note_processing, str(note.id))
     logger.info("note.queued", extra={"note_id": str(note.id), "duration": metadata.duration_seconds})
 
     return NoteCreateResponse(id=note.id, status=note.status)
@@ -201,6 +190,7 @@ def get_note_status(
 @router.post("/{note_id}/retry", response_model=NoteCreateResponse)
 def retry_note(
     note_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user_id: uuid.UUID = Depends(get_current_user_id),
 ):
@@ -215,15 +205,7 @@ def retry_note(
     note.error_message = None
     db.commit()
 
-    try:
-        celery_app.send_task("process_note", args=[str(note.id)])
-    except Exception as exc:
-        note.status = NoteStatus.FAILED
-        note.error_message = "Could not start background processing. Please try again."
-        db.commit()
-        logger.error("note.retry_enqueue_failed", extra={"note_id": str(note.id), "error": str(exc)})
-        return NoteCreateResponse(id=note.id, status=note.status)
-
+    background_tasks.add_task(run_note_processing, str(note.id))
     logger.info("note.retry_queued", extra={"note_id": str(note.id)})
 
     return NoteCreateResponse(id=note.id, status=note.status)

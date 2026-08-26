@@ -2,8 +2,9 @@
 SQLAlchemy engine/session setup.
 
 `get_db` is a FastAPI dependency that yields a request-scoped session.
-`SessionLocal` is used directly by Celery tasks, which run outside the
-request/response cycle and therefore outside FastAPI's dependency system.
+`SessionLocal` is used directly by background tasks (see
+app/workers/tasks.py), which run outside the request/response cycle and
+therefore outside FastAPI's dependency system.
 """
 
 from contextlib import contextmanager
@@ -51,7 +52,7 @@ def get_db() -> Generator[Session, None, None]:
 
 @contextmanager
 def session_scope() -> Generator[Session, None, None]:
-    """Context manager for use in Celery tasks / scripts outside of FastAPI."""
+    """Context manager for use in background tasks / scripts outside of FastAPI."""
     db = SessionLocal()
     try:
         yield db

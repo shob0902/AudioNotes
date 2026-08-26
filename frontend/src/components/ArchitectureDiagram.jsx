@@ -2,11 +2,10 @@ import { motion } from "framer-motion";
 
 const NODES = [
   { label: "Browser", detail: "React + Vite + Tailwind" },
-  { label: "FastAPI", detail: "Validate → Store → Enqueue → Respond" },
+  { label: "FastAPI", detail: "Validate → Store → Schedule → Respond" },
   { label: "Object Storage", detail: "R2 / Supabase / S3-compatible" },
   { label: "PostgreSQL", detail: "Note metadata, transcript, summary" },
-  { label: "Redis", detail: "Celery broker + result backend" },
-  { label: "Celery Worker", detail: "Background pipeline" },
+  { label: "Background Task", detail: "In-process (FastAPI BackgroundTasks)" },
   { label: "Gnani ASR", detail: "Chunked speech-to-text" },
   { label: "Groq LLM", detail: "Structured summarization" },
   { label: "PostgreSQL", detail: "Final transcript + summary saved" },
@@ -49,7 +48,7 @@ export default function ArchitectureDiagram() {
           <span className="h-2.5 w-2.5 rounded-full bg-app shadow-inset" /> Synchronous (request/response)
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-primary-light" /> Background (Celery)
+          <span className="h-2.5 w-2.5 rounded-full bg-primary-light" /> Background (in-process task)
         </span>
       </div>
     </div>

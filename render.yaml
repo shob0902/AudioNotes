@@ -6,22 +6,19 @@
 # (or that you fill in after the first deploy once dependent service URLs
 # exist — see README.md "Deployment" for the exact order of operations).
 #
-# You can also skip this file entirely and create the four services by hand
+# You can also skip this file entirely and create the two services by hand
 # by following the manual steps in README.md — both paths produce the same
 # result.
 
 envVarGroups:
   - name: audio-notes-shared
     envVars:
-      # Using Neon (Postgres) and Upstash (Redis) instead of Render's own
-      # managed Postgres/Key Value services — both have permanently-free
-      # tiers, whereas Render's free Postgres/Redis expire after 30 days.
-      # Fill these in with your own Neon/Upstash connection strings when
-      # prompted (see README.md "Deployment").
+      # Using Neon (Postgres) instead of Render's own managed Postgres —
+      # Neon's free tier is permanent, whereas Render's free Postgres
+      # expires after 30 days. Fill this in with your own Neon connection
+      # string when prompted (see README.md "Deployment").
       - key: DATABASE_URL
         sync: false # postgresql+psycopg://...neon.tech/neondb?sslmode=require
-      - key: REDIS_URL
-        sync: false # rediss://...upstash.io:6379/0?ssl_cert_reqs=CERT_REQUIRED
       # generateValue lets Render create a cryptographically random secret
       # itself, since — unlike GNANI_API_KEY/GROQ_API_KEY — nothing external
       # needs to match this value.
@@ -85,24 +82,13 @@ services:
     rootDir: backend
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    plan: starter
+    plan: free
     healthCheckPath: /api/health
     envVarGroups:
       - audio-notes-shared
     envVars:
       - key: BACKEND_URL
         sync: false # set to this service's own Render URL once known
-
-  - type: worker
-    name: audio-notes-worker
-    runtime: docker
-    rootDir: backend
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
-    dockerCommand: celery -A app.workers.celery_app worker --loglevel=info --concurrency=2
-    plan: starter
-    envVarGroups:
-      - audio-notes-shared
 
   - type: web
     name: audio-notes-frontend

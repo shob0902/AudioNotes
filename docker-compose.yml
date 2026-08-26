@@ -19,24 +19,6 @@ services:
       timeout: 5s
       retries: 10
 
-  redis:
-    image: redis:7-alpine
-    container_name: audio-notes-redis
-    restart: unless-stopped
-    ports:
-      # Host-side port remapped to 6380 to avoid colliding with other
-      # projects' Redis containers commonly bound to the default 6379.
-      # The container's internal port (used by other services on the
-      # Docker network, e.g. redis://redis:6379/0) is unaffected.
-      - "6380:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   # Local, S3-compatible object storage for development — swap for real
   # Cloudflare R2 / Supabase / S3 credentials in .env when you're ready to
   # deploy (see README.md "Deployment"). StorageService talks to whichever
@@ -74,8 +56,8 @@ services:
       "
 
   # Optional convenience services below. Comment these out and run the
-  # backend/worker/frontend directly on your host if you prefer faster
-  # reload loops during development (see README.md "Local Setup").
+  # backend/frontend directly on your host if you prefer faster reload
+  # loops during development (see README.md "Local Setup").
   backend:
     build:
       context: ./backend
@@ -86,39 +68,15 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql+psycopg://audio_notes:audio_notes@postgres:5432/audio_notes
-      REDIS_URL: redis://redis:6379/0
       STORAGE_ENDPOINT: http://minio:9000
     ports:
       - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     command: >
       sh -c "alembic upgrade head &&
              uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
-    volumes:
-      - ./backend:/app
-
-  worker:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: audio-notes-worker
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      DATABASE_URL: postgresql+psycopg://audio_notes:audio_notes@postgres:5432/audio_notes
-      REDIS_URL: redis://redis:6379/0
-      STORAGE_ENDPOINT: http://minio:9000
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=2
     volumes:
       - ./backend:/app
 
@@ -137,5 +95,4 @@ services:
 
 volumes:
   postgres_data:
-  redis_data:
   minio_data:

@@ -8,7 +8,6 @@
 <img src="https://img.shields.io/badge/FastAPI-Async%20API-0D9B8C?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
 <img src="https://img.shields.io/badge/React-Vite-0D9B8C?style=for-the-badge&logo=react&logoColor=white" alt="React" />
 <img src="https://img.shields.io/badge/PostgreSQL-Database-0D9B8C?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
-<img src="https://img.shields.io/badge/Redis-Celery-0D9B8C?style=for-the-badge&logo=redis&logoColor=white" alt="Redis" />
 <img src="https://img.shields.io/badge/Groq-LLM%20Summaries-0D9B8C?style=for-the-badge" alt="Groq" />
 <img src="https://img.shields.io/badge/Gnani-Speech--to--Text-0D9B8C?style=for-the-badge" alt="Gnani" />
 <img src="https://img.shields.io/badge/Deploy-Render-0D9B8C?style=for-the-badge&logo=render&logoColor=white" alt="Render" />
@@ -47,7 +46,7 @@ Upload a recording (2+ minutes) → **[Gnani Speech-to-Text](https://gnani.ai/sp
 - 🔐 Simple email/password accounts (JWT bearer tokens, no OAuth) — each account only ever sees its own recordings
 - 📤 Drag-and-drop audio upload (MP3, WAV, M4A, AAC, OGG, FLAC)
 - ✅ Real validation: file size, format, empty files, and actual ffmpeg-decoded corruption checks — never trusts the file extension alone
-- ⚡ Non-blocking upload: the HTTP request returns immediately; all transcription/summarization happens in a background worker
+- ⚡ Non-blocking upload: the HTTP request returns immediately; all transcription/summarization happens in a background task
 - 📊 Live, status-based processing progress (no fake percentages) via polling
 - 🧩 Chunked transcription to work around Gnani's per-request audio length cap, with independent per-chunk retries
 - 🧠 Structured AI summary (summary, key points, action items, decisions, topics) with map-reduce summarization for long transcripts
@@ -64,32 +63,29 @@ See **`/architecture`** in the running app for the full write-up (diagram, sync 
 Short version:
 
 ```
-Browser (React) --upload--> FastAPI --validate/store/enqueue--> responds immediately
-                                 │
-                                 ▼
-                          Object Storage (audio bytes)
-                          PostgreSQL (note metadata)
-                          Redis (task queue)
-                                 │
-                                 ▼
-                          Celery Worker
-                                 │
-                     splits audio into <=60s chunks
-                                 │
-                                 ▼
-                    Gnani Speech-to-Text (per chunk, ordered, retried)
-                                 │
-                        combined transcript
-                                 │
-                                 ▼
-                       Groq LLM (structured summary,
-                       map-reduce if transcript is long)
-                                 │
-                                 ▼
-                       PostgreSQL (final result)
+Browser (React) --upload--> FastAPI --validate/store/schedule--> responds immediately
+                                 │                        │
+                                 ▼                        ▼
+                          Object Storage (audio bytes)   Background task
+                          PostgreSQL (note metadata)     (same process, off the
+                                                          request path)
+                                                                 │
+                                                     splits audio into <=60s chunks
+                                                                 │
+                                                                 ▼
+                                            Gnani Speech-to-Text (per chunk, ordered, retried)
+                                                                 │
+                                                        combined transcript
+                                                                 │
+                                                                 ▼
+                                                Groq LLM (structured summary,
+                                                map-reduce if transcript is long)
+                                                                 │
+                                                                 ▼
+                                                       PostgreSQL (final result)
 ```
 
-> The upload endpoint only ever does fast, synchronous work (validate → store → create DB row → enqueue). Transcription and summarization always happen in the Celery worker, off the request path — this is **required, not optional**, because Gnani caps a single request at ~60 seconds of audio, so any 2+ minute file needs multiple sequential API calls plus an LLM call, which can take well over what's safe to hold an HTTP connection open for.
+> The upload endpoint only ever does fast, synchronous work (validate → store → create DB row → schedule). Transcription and summarization always happen in a FastAPI `BackgroundTasks` callback, off the request path — this is **required, not optional**, because Gnani caps a single request at ~60 seconds of audio, so any 2+ minute file needs multiple sequential API calls plus an LLM call, which can take well over what's safe to hold an HTTP connection open for. The background task runs in the same process as the API (no separate worker/queue) — the simplest shape that still keeps processing off the request path, and the one that fits entirely within free hosting tiers.
 
 ---
 
@@ -100,7 +96,7 @@ Browser (React) --upload--> FastAPI --validate/store/enqueue--> responds immedia
 | Frontend | React + Vite + Tailwind CSS + React Router (JavaScript) |
 | Backend | Python + FastAPI + Uvicorn |
 | Database | PostgreSQL + SQLAlchemy + Alembic |
-| Background jobs | Redis + Celery |
+| Background processing | FastAPI `BackgroundTasks` (in-process, no separate worker/queue) |
 | Speech-to-text | Gnani STT API |
 | LLM summarization | Groq API |
 | Object storage | Any S3-compatible provider (Cloudflare R2, Supabase Storage, MinIO, AWS S3) |
@@ -134,14 +130,14 @@ audio-notes/
 │   │   ├── schemas/note.py      Pydantic request/response schemas
 │   │   ├── routes/               notes.py, health.py
 │   │   ├── services/             gnani_service.py, groq_service.py, storage_service.py
-│   │   ├── workers/              celery_app.py, tasks.py (the processing pipeline)
+│   │   ├── workers/              tasks.py (the processing pipeline, run via BackgroundTasks)
 │   │   └── utils/                 audio.py (validation/chunking), exceptions.py, logging.py
 │   ├── alembic/                  Migrations
 │   ├── tests/                    pytest suite (mocked Gnani/Groq, no real API keys needed)
 │   ├── requirements.txt
-│   └── Dockerfile                 Includes ffmpeg — used for both the API and the worker
+│   └── Dockerfile                 Includes ffmpeg
 │
-├── docker-compose.yml           Postgres + Redis (+ optional backend/worker/frontend)
+├── docker-compose.yml           Postgres (+ optional backend/frontend)
 ├── render.yaml                  Optional Render Blueprint
 ├── .env.example
 └── README.md
@@ -155,7 +151,7 @@ audio-notes/
 
 - Python 3.11+
 - Node.js 20+
-- Docker Desktop (for local Postgres/Redis, or run them natively)
+- Docker Desktop (for local Postgres, or run it natively)
 - **ffmpeg** installed and on `PATH` — required for audio duration probing, corruption detection, and chunking (`pydub` shells out to it). The backend Docker image installs it automatically; for local (non-Docker) development, install it yourself:
   - Windows: `choco install ffmpeg` (or download a build and add it to `PATH`)
   - macOS: `brew install ffmpeg`
@@ -176,7 +172,6 @@ Copy `.env.example` to `.env` at the repo root and fill in real values. **Never 
 | Variable | Description |
 |---|---|
 | `DATABASE_URL` | PostgreSQL connection string (`postgresql+psycopg://...`). Render's free Postgres expires after 30 days — [Neon](https://neon.tech) or [Supabase](https://supabase.com) both offer a permanently-free Postgres tier and need no code changes, just this connection string |
-| `REDIS_URL` | Redis connection string, used as both the Celery broker and result backend |
 | `JWT_SECRET_KEY` | Signs auth tokens. Required, no default. Generate with `openssl rand -hex 32` |
 | `JWT_ALGORITHM` | JWT signing algorithm (default `HS256`) |
 | `JWT_EXPIRES_MINUTES` | How long a login stays valid (default 10080 = 7 days) |
@@ -245,12 +240,6 @@ alembic downgrade base
 
 </details>
 
-**Redis**
-
-```bash
-docker compose up -d redis
-```
-
 **Backend** (terminal 1)
 
 ```bash
@@ -260,14 +249,7 @@ uvicorn app.main:app --reload
 # Docs: http://localhost:8000/docs  (Swagger)  and /redoc (ReDoc)
 ```
 
-**Celery worker** (terminal 2)
-
-```bash
-cd backend
-celery -A app.workers.celery_app worker --loglevel=info
-```
-
-**Frontend** (terminal 3)
+**Frontend** (terminal 2)
 
 ```bash
 cd frontend
@@ -311,7 +293,7 @@ npm test
 | `POST` | `/api/notes/{id}/retry` | Re-queue a failed note. Requires auth. |
 | `DELETE` | `/api/notes/{id}` | Delete a note and its stored audio. Requires auth. |
 | `GET` | `/api/health` | Liveness check. |
-| `GET` | `/api/ready` | Readiness check (verifies Postgres + Redis connectivity). |
+| `GET` | `/api/ready` | Readiness check (verifies Postgres connectivity). |
 
 All `/api/notes*` routes require an `Authorization: Bearer <token>` header from `/api/auth/login` or `/api/auth/signup`.
 
@@ -325,7 +307,7 @@ Every failure mode is caught and translated into a short, human-readable message
 
 - **Upload errors** (unsupported format, oversized, empty, corrupt/unreadable audio) → `422` with a clear message, before anything is stored.
 - **Gnani / Groq errors** — timeouts, auth failures, rate limits, server errors, and malformed responses are each classified as either transient (retried with exponential backoff, capped) or permanent (never retried). Whatever survives always resolves the note to `completed` or `failed` — it's never left stuck mid-pipeline.
-- **Storage / database / Redis errors** are logged with full technical detail server-side and surfaced to the user as a generic, safe message.
+- **Storage / database errors** are logged with full technical detail server-side and surfaced to the user as a generic, safe message.
 
 Failed notes show their `error_message` on the note detail page along with a **Retry** button that re-queues the whole note.
 
@@ -333,7 +315,7 @@ Failed notes show their `error_message` on the note detail page along with a **R
 
 ## 🎧 Long Audio Handling
 
-Gnani's documented API caps a single request at **60 seconds of audio** (ideally ≤30s). Since this app targets 2+ minute recordings, the worker always:
+Gnani's documented API caps a single request at **60 seconds of audio** (ideally ≤30s). Since this app targets 2+ minute recordings, the background task always:
 
 1. Decodes the full upload with ffmpeg.
 2. Splits it into sequential `GNANI_CHUNK_SECONDS`-long WAV chunks (default 30s), preserving order.
@@ -351,18 +333,20 @@ Render is the target platform. **You deploy this yourself — the AI assistant t
 
 ### What you're deploying
 
+Just two Render services plus two free external pieces — no Redis, no separate worker:
+
 1. PostgreSQL — [Neon](https://neon.tech) (not a Render resource; Render's own free Postgres expires after 30 days, Neon's free tier doesn't)
-2. Redis — [Upstash](https://upstash.com) (same reasoning — Render's free Key Value tier also expires, Upstash's doesn't)
-3. Backend API (Docker web service, on Render)
-4. Celery worker (same Docker image, different start command, on Render)
-5. Frontend (static site, on Render)
-6. Object storage — set up separately (Cloudflare R2 recommended), not a Render resource
+2. Backend API (Docker web service, on Render's **free** plan) — also runs all transcription/summarization in-process via `BackgroundTasks`
+3. Frontend (static site, on Render, free)
+4. Object storage — set up separately (Cloudflare R2 recommended), not a Render resource
+
+> Render's free web service spins down after periods of inactivity (cold start on the next request) — the trade-off for $0/month. See "Known Limitations."
 
 ### 🚀 Option A — Render Blueprint (`render.yaml`) — recommended
 
 1. Push this repo to GitHub.
-2. In the Render dashboard: **New → Blueprint** → select your repo → Render reads `render.yaml` and proposes 2 services (backend, worker) plus the frontend static site.
-3. When prompted, fill in the `sync: false` values: `DATABASE_URL` (your Neon connection string), `REDIS_URL` (your Upstash connection string), `GNANI_API_KEY`, `GROQ_API_KEY`, `STORAGE_*`, `FRONTEND_URL`, `BACKEND_URL`, `VITE_API_BASE_URL`, `VITE_GITHUB_REPO_URL`. Some of these (the backend's own URL, the frontend's own URL) aren't known until after the first deploy — deploy once, copy the assigned `.onrender.com` URLs, then update those env vars and trigger a manual redeploy of the backend and frontend services.
+2. In the Render dashboard: **New → Blueprint** → select your repo → Render reads `render.yaml` and proposes 2 services: the backend and the frontend static site.
+3. When prompted, fill in the `sync: false` values: `DATABASE_URL` (your Neon connection string), `GNANI_API_KEY`, `GROQ_API_KEY`, `STORAGE_*`, `FRONTEND_URL`, `BACKEND_URL`, `VITE_API_BASE_URL`, `VITE_GITHUB_REPO_URL`. Some of these (the backend's own URL, the frontend's own URL) aren't known until after the first deploy — deploy once, copy the assigned `.onrender.com` URLs, then update those env vars and trigger a manual redeploy of the backend and frontend services.
 4. Click **Apply**.
 
 <details>
@@ -371,41 +355,29 @@ Render is the target platform. **You deploy this yourself — the AI assistant t
 **1. PostgreSQL (Neon)**
 - [neon.tech](https://neon.tech) → sign up → **Create a project**.
 - Dashboard → **Connection Details** → copy the connection string (`postgresql://user:pass@host/db?sslmode=require`).
-- Adapt it for this app's driver — swap the `postgresql://` prefix for `postgresql+psycopg://`, keep `?sslmode=require` — and use that as `DATABASE_URL` for both the backend and worker services.
+- Adapt it for this app's driver — swap the `postgresql://` prefix for `postgresql+psycopg://`, keep `?sslmode=require` — and use that as `DATABASE_URL`.
 
-**2. Redis (Upstash)**
-- [upstash.com](https://upstash.com) → sign up → **Create Database** → type **Regional**, TLS enabled (default).
-- **Connect** tab → copy the **Redis URL** (`rediss://default:pass@host:6379`).
-- Append `?ssl_cert_reqs=CERT_REQUIRED` — Celery's redis backend requires this explicitly on a `rediss://` URL, e.g. `rediss://default:pass@host:6379/0?ssl_cert_reqs=CERT_REQUIRED` — and use that as `REDIS_URL` for both the backend and worker services.
-
-**3. Object storage (Cloudflare R2 example)**
+**2. Object storage (Cloudflare R2 example)**
 - Create an R2 bucket in the Cloudflare dashboard.
 - Create an R2 API token (Account → R2 → Manage API Tokens) with read/write access to that bucket.
 - Note the endpoint (`https://<account-id>.r2.cloudflarestorage.com`), bucket name, access key, and secret key.
 
-**4. Backend API (Web Service)**
+**3. Backend API (Web Service)**
 - New → Web Service → connect your repo.
 - **Root Directory:** `backend`
 - **Runtime:** Docker
 - **Dockerfile Path:** `backend/Dockerfile` (root directory `backend`, so just `Dockerfile`)
+- **Instance Type:** Free
 - **Build Command:** *(leave blank — Docker builds handle this)*
 - **Start Command:** *(leave blank — uses the Dockerfile's `CMD`, which runs `alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT`)*
 - **Health Check Path:** `/api/health`
 - **Environment variables:** all of `GNANI_*`, `GROQ_*`, `STORAGE_*`, `MAX_UPLOAD_SIZE_MB`, `MIN_AUDIO_DURATION_SECONDS`, plus:
   - `DATABASE_URL` = the Neon connection string from step 1
-  - `REDIS_URL` = the Upstash connection string from step 2
-  - `FRONTEND_URL` = your frontend's Render URL (set after step 6; comma-separate if you also have a custom domain)
+  - `FRONTEND_URL` = your frontend's Render URL (set after step 4; comma-separate if you also have a custom domain)
   - `BACKEND_URL` = this service's own Render URL (set after first deploy)
 - Render auto-assigns `$PORT` — the Dockerfile already reads it (`--port ${PORT:-8000}`).
 
-**5. Celery Worker (Background Worker)**
-- New → Background Worker → same repo.
-- **Root Directory:** `backend`
-- **Runtime:** Docker, same Dockerfile as the backend.
-- **Docker Command (override):** `celery -A app.workers.celery_app worker --loglevel=info --concurrency=2`
-- **Environment variables:** identical to the backend API service (`DATABASE_URL`, `REDIS_URL`, `GNANI_*`, `GROQ_*`, `STORAGE_*`). This service does not need `FRONTEND_URL`/CORS settings or a health check path — Render doesn't route HTTP traffic to a Background Worker.
-
-**6. Frontend (Static Site)**
+**4. Frontend (Static Site)**
 - New → Static Site → same repo.
 - **Root Directory:** `frontend`
 - **Build Command:** `npm install && npm run build`
@@ -415,7 +387,7 @@ Render is the target platform. **You deploy this yourself — the AI assistant t
   - `VITE_GITHUB_REPO_URL` = your repo's URL
 - **Rewrite rule:** add `/*` → `/index.html` (Rewrites & Redirects tab) so React Router's client-side routes (`/notes/:id`, `/architecture`) work on refresh/direct link.
 
-**7. Wire it all together**
+**5. Wire it all together**
 - Once the backend and frontend both have their `.onrender.com` URLs, go back and set:
   - Backend: `FRONTEND_URL` = the frontend's URL (comma-separated with any custom domain)
   - Backend: `BACKEND_URL` = the backend's own URL
@@ -465,7 +437,7 @@ curl https://<your-backend>.onrender.com/api/ready
 ### ✔️ Post-Deployment Verification
 
 1. `GET /api/health` returns `{"status": "ok"}`.
-2. `GET /api/ready` returns `{"status": "ok", "checks": {"database": "ok", "redis": "ok"}}`.
+2. `GET /api/ready` returns `{"status": "ok", "checks": {"database": "ok"}}`.
 3. Open the frontend URL → sign up for an account → the Dashboard loads with an empty notes list.
 4. Upload a real 2+ minute audio file → note appears with status `queued`, then progresses through `processing → transcribing → summarizing → completed` (watch the status checklist update every ~2.5s).
 5. Open the completed note → transcript and structured summary are both visible and copyable.
@@ -481,7 +453,8 @@ curl https://<your-backend>.onrender.com/api/ready
 - Favorites and checked-off action items still live in the browser's `localStorage` rather than the database (a holdover from before accounts existed), so they don't sync across devices for the same account.
 - Audio is fully decoded into memory for chunking (`pydub`), which is fine at the enforced `MAX_UPLOAD_SIZE_MB` but wouldn't scale to very large files without a streaming rewrite.
 - Gnani chunk transcription is sequential, not parallel, to keep chronological ordering simple — this is the right tradeoff at expected note lengths, but is a throughput ceiling for very long recordings.
-- Render's own web/worker free & starter instances can spin down on inactivity, which will show up as a slower first request after idle periods. (Neon/Upstash themselves are not affected by this — they're used precisely because they don't expire or require a paid plan to stay alive.)
+- Render's free web service instance spins down on inactivity, which will show up as a slower first request after idle periods. (Neon itself is not affected by this — it's used precisely because it doesn't expire or require a paid plan to stay alive.)
+- Background processing runs in-process (FastAPI `BackgroundTasks`) rather than in a separate worker, to fit entirely within free hosting tiers. Trade-offs versus the earlier Celery/Redis design: no independent retry-on-crash/requeue if the instance restarts mid-task, no horizontal worker scaling, and processing shares CPU/memory with the request-serving process instead of an isolated one.
 
 ---
 

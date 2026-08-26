@@ -2,7 +2,8 @@
 Shared test fixtures.
 
 Tests never touch real Gnani/Groq/storage credentials — external HTTP calls
-are mocked with respx and StorageService/Celery dispatch are monkeypatched.
+are mocked with respx and StorageService/background-task dispatch are
+monkeypatched.
 Model tests do require a real PostgreSQL database (the same one from
 docker-compose) because Note uses Postgres-specific types (UUID, JSONB,
 native enum) that SQLite can't represent. Run `docker compose up -d
@@ -87,9 +88,11 @@ def client(db_session, monkeypatch):
 
     app.dependency_overrides[get_db] = override_get_db
 
-    # Never actually enqueue a Celery task or hit real object storage during
-    # route tests.
-    monkeypatch.setattr("app.routes.notes.celery_app.send_task", lambda *a, **k: None)
+    # Never actually run the background processing task or hit real object
+    # storage during route tests — FastAPI's TestClient runs BackgroundTasks
+    # to completion as part of the request, so without this every notes
+    # route test would trigger the real Gnani/Groq/storage pipeline.
+    monkeypatch.setattr("app.routes.notes.run_note_processing", lambda *a, **k: None)
     monkeypatch.setattr(
         "app.services.storage_service.StorageService.upload_file", lambda self, *a, **k: None
     )

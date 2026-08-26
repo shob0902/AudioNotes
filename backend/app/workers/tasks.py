@@ -11,6 +11,10 @@ already retry transient failures internally — anything that reaches this
 task as an exception is either a permanent failure or retries exhausted, so
 the note is always moved to a terminal state. A note is never left stuck in
 a non-terminal status.
+
+`run_note_processing` runs as a FastAPI `BackgroundTasks` callback, in the
+same process as the API — scheduled from app/routes/notes.py after the
+upload response is sent, not via a separate queue/worker.
 """
 
 import uuid
@@ -22,7 +26,6 @@ from app.services.groq_service import GroqService
 from app.services.storage_service import StorageService
 from app.utils.exceptions import AppError
 from app.utils.logging import get_logger
-from app.workers.celery_app import celery_app
 
 logger = get_logger(__name__)
 
@@ -33,8 +36,7 @@ def _set_status(db, note: Note, status: NoteStatus) -> None:
     logger.info("note.status_change", extra={"note_id": str(note.id), "status": status.value})
 
 
-@celery_app.task(name="process_note", bind=True)
-def process_note_task(self, note_id: str) -> None:
+def run_note_processing(note_id: str) -> None:
     db = SessionLocal()
     try:
         note = db.get(Note, uuid.UUID(note_id))

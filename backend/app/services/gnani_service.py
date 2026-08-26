@@ -14,8 +14,8 @@ Key facts from Gnani's documented API that shape this service:
 Because of the 60s-per-call cap, transcribing a 2+ minute note requires
 multiple sequential calls against chunks of the original audio (see
 split_audio_into_chunks in app.utils.audio). This service exposes a single
-high-level `transcribe_audio` method so callers (the Celery task) never deal
-with chunking or HTTP details directly.
+high-level `transcribe_audio` method so callers (the background task) never
+deal with chunking or HTTP details directly.
 """
 
 import httpx

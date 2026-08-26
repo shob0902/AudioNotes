@@ -1,5 +1,5 @@
 """
-Structured JSON logging setup shared by the API process and Celery workers.
+Structured JSON logging setup shared by request handling and background tasks.
 
 Usage:
     from app.utils.logging import get_logger

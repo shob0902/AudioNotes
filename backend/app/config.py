@@ -40,11 +40,6 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expires_minutes: int = 60 * 24 * 7  # 7 days
 
-    # --- Redis / Celery -----------------------------------------------------
-    # Port 6380, not Redis's default 6379 - see docker-compose.yml's redis
-    # service for why (avoids colliding with other local projects' Redis).
-    redis_url: str = "redis://localhost:6380/0"
-
     # --- Gnani Speech-to-Text ----------------------------------------------
     gnani_api_key: str = ""
     gnani_api_url: str = "https://api.vachana.ai/stt/v3"

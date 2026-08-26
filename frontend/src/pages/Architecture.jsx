@@ -23,15 +23,16 @@ const SECTIONS = [
         <li>The raw audio bytes are uploaded to object storage; only a storage key/URL is kept in Postgres.</li>
         <li>
           A <code>notes</code> row is created with status <code>uploaded</code>, then <code>queued</code>, and a
-          Celery task is enqueued via Redis.
+          background task is scheduled via FastAPI's <code>BackgroundTasks</code>.
         </li>
         <li>
           FastAPI responds immediately with <code>{'{ id, status: "queued" }'}</code> — the HTTP request never waits
           on transcription.
         </li>
         <li>
-          The Celery worker downloads the audio, splits it into Gnani-sized chunks, transcribes each in order,
-          concatenates the results, then sends the combined transcript to Groq for a structured summary.
+          After the response is sent, the background task downloads the audio, splits it into Gnani-sized chunks,
+          transcribes each in order, concatenates the results, then sends the combined transcript to Groq for a
+          structured summary.
         </li>
         <li>
           Each stage transition (<code>processing → transcribing → summarizing → completed</code>) is committed to
@@ -54,20 +55,22 @@ const SECTIONS = [
           The application never talks to the storage provider's SDK directly outside of one file:{" "}
           <code>StorageService</code> (<code>upload_file</code>, <code>download_file</code>, <code>delete_file</code>
           , <code>get_file_url</code>). Swapping providers means changing environment variables and this one file —
-          not the routes, the worker, or any business logic.
+          not the routes, the background task, or any business logic.
         </p>
       </>
     ),
   },
   {
     number: 4,
-    title: "Background Processing (Redis + Celery)",
+    title: "Background Processing (FastAPI BackgroundTasks)",
     content: (
       <p>
-        Anything slower than "validate and save a file" runs in a Celery worker process, decoupled from the API via a
-        Redis-backed task queue. Celery is configured with generous per-task time limits (a note can legitimately
-        take minutes across several Gnani calls plus a Groq call), late acknowledgement so a killed worker doesn't
-        silently lose a task, and low prefetch so one long note doesn't starve others in the queue.
+        Anything slower than "validate and save a file" runs as a FastAPI <code>BackgroundTasks</code> callback,
+        scheduled from the upload/retry routes and executed after the HTTP response is already sent — in the same
+        process as the API, with no separate worker process or task queue. That keeps the deployment to a single
+        free-tier-friendly web service: no Redis broker, no independently-scaled worker, at the cost of processing
+        sharing CPU/memory with request handling and no independent retry-on-crash if the process restarts mid-task
+        (see "Future Improvements" for when a real queue would earn its keep back).
       </p>
     ),
   },
@@ -81,7 +84,7 @@ const SECTIONS = [
           this is a hard constraint from Gnani's own documentation, not a design preference. Since this application
           targets 2+ minute recordings, chunking is mandatory rather than optional.
         </p>
-        <p>The worker's transcription step:</p>
+        <p>The background task's transcription step:</p>
         <ol className="list-decimal space-y-1.5 pl-5">
           <li>Decodes the full audio with ffmpeg (using the original extension as a decoding hint).</li>
           <li>
@@ -111,9 +114,9 @@ const SECTIONS = [
           <li>Upload validation (format, size, empty-file, real ffmpeg decode)</li>
           <li>Audio storage (object storage upload)</li>
           <li>Database record creation</li>
-          <li>Celery job enqueue</li>
+          <li>Background task scheduled (FastAPI <code>BackgroundTasks</code>)</li>
         </ul>
-        <p className="mt-3 font-medium text-ink">Background (Celery worker, off the request path):</p>
+        <p className="mt-3 font-medium text-ink">Background (in-process task, off the request path):</p>
         <ul className="list-disc space-y-1 pl-5">
           <li>Audio chunking and transcription (Gnani)</li>
           <li>Retries with backoff for transient failures</li>
@@ -137,7 +140,7 @@ const SECTIONS = [
           Every external call (Gnani, Groq, storage) raises one of two typed exceptions:{" "}
           <code>TransientServiceError</code> (timeouts, 429, 5xx — retried with exponential backoff, capped) or{" "}
           <code>PermanentServiceError</code> (invalid auth, malformed request, unsupported audio — never retried
-          automatically). Whatever reaches the Celery task always resolves to a terminal status — a note is never
+          automatically). Whatever reaches the background task always resolves to a terminal status — a note is never
           left stuck in <code>processing</code>/<code>transcribing</code>/<code>summarizing</code> forever.
         </p>
         <p>
@@ -198,15 +201,15 @@ const SECTIONS = [
     title: "Deployment Architecture (Render)",
     content: (
       <>
-        <p>Six independently deployable pieces, all configured purely through environment variables:</p>
+        <p>Four independently deployable pieces, all configured purely through environment variables:</p>
         <ul className="list-disc space-y-1 pl-5">
-          <li>PostgreSQL — Render managed Postgres</li>
-          <li>Redis — Render Key Value instance (Celery broker + result backend)</li>
+          <li>PostgreSQL — Neon (permanently-free tier), external to Render</li>
           <li>
-            Backend API — Docker web service running Uvicorn, runs <code>alembic upgrade head</code> on boot
+            Backend API — Docker web service on Render's free plan, running Uvicorn; runs{" "}
+            <code>alembic upgrade head</code> on boot and also runs background processing in-process (no separate
+            worker/queue)
           </li>
-          <li>Celery worker — the same Docker image as the API, different start command</li>
-          <li>Frontend — static site build served by Render's static hosting</li>
+          <li>Frontend — static site build served by Render's static hosting, also free</li>
           <li>Object storage — Cloudflare R2 (or any S3-compatible provider), external to Render</li>
         </ul>
         <p>See the README for exact build/start commands and environment variables for each service.</p>
@@ -232,6 +235,11 @@ const SECTIONS = [
         <li>Per-chunk parallelism for Gnani transcription (currently sequential, to keep ordering simple).</li>
         <li>Speaker diarization and timestamped transcripts, if Gnani's API exposes them.</li>
         <li>Soft-delete / audit trail instead of hard-deleting notes.</li>
+        <li>
+          A real task queue (e.g. Celery + Redis) instead of in-process <code>BackgroundTasks</code>, if load ever
+          outgrows a single instance — would restore independent worker scaling and crash-safe retry/requeue, at the
+          cost of a paid always-on worker.
+        </li>
       </ul>
     ),
   },

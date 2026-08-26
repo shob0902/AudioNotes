@@ -1,5 +1,3 @@
-# Single image used for both the API service and the Celery worker on
-# Render — the two processes differ only in their start command.
 FROM python:3.12-slim
 
 # ffmpeg is required by pydub for duration probing, format validation, and
@@ -21,6 +19,4 @@ ENV PYTHONUNBUFFERED=1 \
 
 EXPOSE 8000
 
-# Default command runs the API. Render's worker service overrides this with
-# the Celery command (see README.md / render.yaml).
 CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
