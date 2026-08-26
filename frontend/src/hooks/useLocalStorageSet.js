@@ -37,5 +37,16 @@ export function useLocalStorageSet(key) {
     });
   }, []);
 
-  return { set, has, toggle };
+  // Used when the underlying thing an id refers to is gone for good (e.g. a
+  // deleted note) — unlike toggle, never re-adds it.
+  const remove = useCallback((id) => {
+    setSet((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }, []);
+
+  return { set, has, toggle, remove };
 }

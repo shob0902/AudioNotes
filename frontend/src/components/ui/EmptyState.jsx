@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 export default function EmptyState({ icon, title, description, action }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-primary/25 bg-white/60 px-6 py-14 text-center">
+    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-primary/25 bg-surface px-6 py-14 text-center">
       <motion.div
         className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-light text-primary"
         animate={{ y: [0, -4, 0] }}

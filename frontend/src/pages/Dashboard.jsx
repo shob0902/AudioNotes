@@ -78,6 +78,7 @@ export default function Dashboard() {
     try {
       await deleteNote(pendingDelete.id);
       setNotes((prev) => prev.filter((n) => n.id !== pendingDelete.id));
+      favorites.remove(pendingDelete.id);
       notify(`"${pendingDelete.title}" was deleted`, { type: "success" });
     } catch (err) {
       notify(err instanceof ApiError ? err.message : "Could not delete this recording.", { type: "error" });
@@ -90,8 +91,13 @@ export default function Dashboard() {
     const completed = notes.filter((n) => n.status === "completed").length;
     const inProgress = notes.filter((n) => !isTerminalStatus(n.status)).length;
     const totalSeconds = notes.reduce((sum, n) => sum + (n.duration || 0), 0);
-    return { total: notes.length, completed, inProgress, totalSeconds };
-  }, [notes]);
+    // Count favorites against the notes that actually still exist, not the
+    // raw localStorage set — deleting a note doesn't retroactively clean up
+    // every browser/session that had favorited it, so the set can still
+    // hold stale ids from before this note was deleted.
+    const favoritedCount = notes.filter((n) => favorites.has(n.id)).length;
+    return { total: notes.length, completed, inProgress, totalSeconds, favoritedCount };
+  }, [notes, favorites]);
 
   const visibleNotes = useMemo(() => {
     // A search query searches across every recording regardless of which
@@ -150,7 +156,7 @@ export default function Dashboard() {
               <StatsCard
                 icon={<StarIcon className="h-4 w-4" />}
                 label="Favorites"
-                value={favorites.set.size}
+                value={stats.favoritedCount}
                 delayMs={200}
               />
               <StatsCard icon={<MicIcon className="h-4 w-4" />} label="In Progress" value={stats.inProgress} delayMs={300} />

@@ -37,4 +37,18 @@ describe("useLocalStorageSet", () => {
     const { result } = renderHook(() => useLocalStorageSet("test-key"));
     expect(result.current.has("anything")).toBe(false);
   });
+
+  it("remove deletes an id and never re-adds it, unlike toggle", () => {
+    const { result } = renderHook(() => useLocalStorageSet("test-key"));
+
+    act(() => result.current.toggle("note-1"));
+    expect(result.current.has("note-1")).toBe(true);
+
+    act(() => result.current.remove("note-1"));
+    expect(result.current.has("note-1")).toBe(false);
+
+    // Calling remove again (already absent) is a no-op, not a re-add.
+    act(() => result.current.remove("note-1"));
+    expect(result.current.has("note-1")).toBe(false);
+  });
 });
