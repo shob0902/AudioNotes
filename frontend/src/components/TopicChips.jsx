@@ -1,8 +1,8 @@
+// The card listing a note's topics as small rounded chips.
 import { motion } from "framer-motion";
-
 import Card from "./ui/Card.jsx";
 import { EmptyStateSmall } from "./EmptyStateSmall.jsx";
-
+// Pops each chip in one after another, or shows the empty line when there are no topics.
 export default function TopicChips({ topics }) {
   return (
     <Card variant="elevated" className="p-6">

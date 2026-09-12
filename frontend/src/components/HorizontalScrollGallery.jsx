@@ -1,27 +1,11 @@
+// A gallery whose cards slide sideways as you scroll down, with a plain scrolling row as fallback.
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-
 const GAP = 24;
-
-/**
- * Scroll-driven horizontal gallery: the outer wrapper is a tall block
- * (`items.length * SCROLL_VH_PER_ITEM` viewport-heights) so there's real
- * vertical scroll distance to drive from; a `position: sticky` inner panel
- * pins itself to the viewport while that distance is scrolled through, and
- * `useScroll` + `useTransform` turn the resulting scroll progress (0 → 1)
- * into a horizontal translateX that walks the row of cards left, one card
- * at a time, roughly in step with how far you've scrolled.
- *
- * Falls back to a plain touch/mouse-wheel horizontal-scrolling row (no
- * scroll-jacking, no sticky pin) under prefers-reduced-motion — consistent
- * with how the rest of this app treats that preference (see index.css and
- * ui/AnimatedCheck.jsx): this pattern is exactly the kind of large,
- * scroll-linked motion that preference exists to opt out of.
- */
+// Pins a tall section and maps its scroll progress onto a horizontal shift of the card row.
 export default function HorizontalScrollGallery({ items }) {
   const containerRef = useRef(null);
   const reduceMotion = useReducedMotion();
-
   const [itemWidth, setItemWidth] = useState(420);
   useEffect(() => {
     const updateWidth = () => setItemWidth(window.innerWidth < 640 ? 280 : 420);
@@ -29,15 +13,12 @@ export default function HorizontalScrollGallery({ items }) {
     window.addEventListener("resize", updateWidth);
     return () => window.removeEventListener("resize", updateWidth);
   }, []);
-
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
   });
-
   const totalDistance = (items.length - 1) * (itemWidth + GAP);
   const x = useTransform(scrollYProgress, [0, 1], [0, -totalDistance]);
-
   if (reduceMotion) {
     return (
       <div className="scrollbar-thin -mx-1 flex gap-6 overflow-x-auto px-1 pb-4">
@@ -47,13 +28,8 @@ export default function HorizontalScrollGallery({ items }) {
       </div>
     );
   }
-
   return (
     <div ref={containerRef} style={{ height: `${items.length * 60}vh` }}>
-      {/* overflow-hidden, not visible: this container sits next to the
-          sidebar (see AppShell.jsx) — without clipping, cards translated
-          far enough left bleed past this container's own edge and overlap
-          the sidebar rather than just being covered by it. */}
       <div className="sticky top-0 flex h-screen items-center overflow-hidden">
         <motion.div className="flex" style={{ x, gap: GAP }}>
           {items.map((item) => (
@@ -64,7 +40,7 @@ export default function HorizontalScrollGallery({ items }) {
     </div>
   );
 }
-
+// One numbered card in the gallery, scrollable on its own if the content is tall.
 function GalleryCard({ item, width }) {
   return (
     <div

@@ -1,9 +1,9 @@
+// The 404 page shown for any route that doesn't match.
 import { Link } from "react-router-dom";
-
 import { MicIcon } from "../components/icons.jsx";
 import EmptyState from "../components/ui/EmptyState.jsx";
 import Button from "../components/ui/Button.jsx";
-
+// Renders the not-found message with a link back to the home page.
 export default function NotFound() {
   return (
     <div className="py-10">

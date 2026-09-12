@@ -1,8 +1,6 @@
+// The pill-style tab switcher, with a sliding highlight behind the active tab.
 import { motion } from "framer-motion";
-
-/**
- * @param {{ id: string, label: string, count?: number }[]} tabs
- */
+// Renders one button per tab and reports the chosen id back through onChange.
 export default function Tabs({ tabs, active, onChange }) {
   return (
     <div role="tablist" className="flex flex-wrap gap-1 rounded-2xl border border-glass-border bg-elevated p-1 shadow-inset">

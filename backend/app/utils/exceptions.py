@@ -1,66 +1,30 @@
-"""
-Application-wide exception hierarchy.
-
-Every exception carries a `user_message` that is safe to show directly in
-the UI (no stack traces, no internal URLs, no secrets) and an optional
-`retryable` flag, logged alongside the failure for observability (whether a
-Retry button makes sense for this kind of failure).
-"""
-
-
+# The app's exception hierarchy, where every error carries a message that is safe to show a user.
+# Base error that pairs a user-safe message with the technical detail meant for the logs.
 class AppError(Exception):
-    """Base class for all application errors with a user-safe message."""
-
     def __init__(self, user_message: str, *, retryable: bool = False, technical_detail: str = ""):
         super().__init__(technical_detail or user_message)
         self.user_message = user_message
         self.retryable = retryable
         self.technical_detail = technical_detail or user_message
-
-
-# --- Upload validation -------------------------------------------------------
-
-
+# Raised when the client sent an unusable file, which is never worth retrying.
 class ValidationError(AppError):
-    """Client sent an unusable file. Never retryable."""
-
     def __init__(self, user_message: str, technical_detail: str = ""):
         super().__init__(user_message, retryable=False, technical_detail=technical_detail)
-
-
-# --- Storage ------------------------------------------------------------------
-
-
+# Raised when the object storage bucket cannot be read from or written to.
 class StorageError(AppError):
     pass
-
-
-# --- Auth ------------------------------------------------------------------
-
-
+# Raised for bad credentials or an invalid/expired token, which is never worth retrying.
 class AuthError(AppError):
-    """Bad credentials, duplicate email, invalid/expired token. Never retryable."""
-
     def __init__(self, user_message: str, technical_detail: str = ""):
         super().__init__(user_message, retryable=False, technical_detail=technical_detail)
-
-
-# --- External API errors (Gnani / Groq) ---------------------------------------
-
-
+# Base class for failures coming back from a third-party API.
 class ExternalServiceError(AppError):
-    """Base class for third-party API failures."""
-
-
+    pass
+# Raised for timeouts, 429s and 5xx responses, which are safe to retry with backoff.
 class TransientServiceError(ExternalServiceError):
-    """Timeouts, 429s, 5xx — safe to retry with backoff."""
-
     def __init__(self, user_message: str, technical_detail: str = ""):
         super().__init__(user_message, retryable=True, technical_detail=technical_detail)
-
-
+# Raised for bad auth or unsupported input, where retrying would not help.
 class PermanentServiceError(ExternalServiceError):
-    """Bad auth, malformed request, unsupported input — retrying won't help."""
-
     def __init__(self, user_message: str, technical_detail: str = ""):
         super().__init__(user_message, retryable=False, technical_detail=technical_detail)

@@ -1,5 +1,5 @@
+// The vertical flow diagram on the architecture page showing a note's journey through the system.
 import { motion } from "framer-motion";
-
 const NODES = [
   { label: "Browser", detail: "React + Vite + Tailwind" },
   { label: "FastAPI", detail: "Validate → Store → Schedule → Respond" },
@@ -10,9 +10,8 @@ const NODES = [
   { label: "Groq LLM", detail: "Structured summarization" },
   { label: "PostgreSQL", detail: "Final transcript + summary saved" },
 ];
-
-const SYNC_COUNT = 2; // Browser, FastAPI — everything after is background
-
+const SYNC_COUNT = 2;
+// The small downward arrow drawn between two nodes.
 function Arrow() {
   return (
     <div className="flex justify-center py-1">
@@ -22,7 +21,7 @@ function Arrow() {
     </div>
   );
 }
-
+// Renders the nodes in order as they scroll into view, colouring the background ones differently.
 export default function ArchitectureDiagram() {
   return (
     <div className="mx-auto max-w-sm">

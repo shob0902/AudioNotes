@@ -1,23 +1,17 @@
+// The clickable waveform strip under the audio player, showing playback position.
 import { motion, useReducedMotion } from "framer-motion";
-
 import { generateWaveformBars } from "../utils/waveform.js";
-
-/**
- * @param {{ seed: string, progress: number, isPlaying: boolean, onSeek?: (ratio: number) => void }} props
- * `progress` is 0..1 of playback through the track.
- */
+// Draws the bars, highlights the played portion, and reports the clicked position back for seeking.
 export default function Waveform({ seed, progress, isPlaying, onSeek }) {
   const reduceMotion = useReducedMotion();
   const bars = generateWaveformBars(seed);
   const activeCount = Math.round(bars.length * Math.min(Math.max(progress, 0), 1));
-
   const handleClick = (event) => {
     if (!onSeek) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const ratio = (event.clientX - rect.left) / rect.width;
     onSeek(Math.min(Math.max(ratio, 0), 1));
   };
-
   return (
     <div
       className={`flex h-10 items-end gap-[3px] ${onSeek ? "cursor-pointer" : ""}`}

@@ -1,12 +1,6 @@
+// Hook holding a Set of ids in localStorage, used for per-browser state like favorites.
 import { useCallback, useEffect, useState } from "react";
-
-/**
- * A Set of string ids persisted to localStorage under `key`. Used for
- * purely client-side, per-browser state that has no backend model —
- * favorites and checked-off action items (see /architecture's "Future
- * Improvements" for why these aren't server-persisted: there's no auth to
- * scope them to a user).
- */
+// Loads the saved Set, writes it back on every change, and exposes read/toggle/remove helpers.
 export function useLocalStorageSet(key) {
   const [set, setSet] = useState(() => {
     try {
@@ -16,18 +10,13 @@ export function useLocalStorageSet(key) {
       return new Set();
     }
   });
-
   useEffect(() => {
     try {
       localStorage.setItem(key, JSON.stringify([...set]));
     } catch {
-      // Storage can be unavailable (private browsing, quota) — the feature
-      // just silently stops persisting rather than breaking the page.
     }
   }, [key, set]);
-
   const has = useCallback((id) => set.has(id), [set]);
-
   const toggle = useCallback((id) => {
     setSet((prev) => {
       const next = new Set(prev);
@@ -36,9 +25,6 @@ export function useLocalStorageSet(key) {
       return next;
     });
   }, []);
-
-  // Used when the underlying thing an id refers to is gone for good (e.g. a
-  // deleted note) — unlike toggle, never re-adds it.
   const remove = useCallback((id) => {
     setSet((prev) => {
       if (!prev.has(id)) return prev;
@@ -47,6 +33,5 @@ export function useLocalStorageSet(key) {
       return next;
     });
   }, []);
-
   return { set, has, toggle, remove };
 }

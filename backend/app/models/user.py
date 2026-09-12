@@ -1,25 +1,12 @@
-"""
-The `users` table: a minimal account record for email/password auth.
-
-Deliberately minimal — no email verification, no password reset, no roles.
-Those would be reasonable future improvements (see /architecture) but
-aren't needed for the simple "each user sees their own recordings" ask
-this was built for.
-"""
-
+# ORM model for the users table holding the email/password login accounts.
 import uuid
 from datetime import datetime
-
 from sqlalchemy import DateTime, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
-
 from app.database import Base
-
-
 class User(Base):
     __tablename__ = "users"
-
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
@@ -28,6 +15,6 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-
-    def __repr__(self) -> str:  # pragma: no cover - debug helper
+    # Short readable representation, handy when debugging in a shell.
+    def __repr__(self) -> str:
         return f"<User id={self.id} email={self.email}>"

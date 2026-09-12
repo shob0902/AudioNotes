@@ -1,7 +1,4 @@
-/**
- * Status-based (never fake-percentage) processing stages, in pipeline order.
- * See app/models/note.py NoteStatus on the backend — this must stay in sync.
- */
+// The processing stages and their labels, kept in step with NoteStatus on the backend.
 export const STAGE_ORDER = [
   "uploaded",
   "queued",
@@ -10,7 +7,6 @@ export const STAGE_ORDER = [
   "summarizing",
   "completed",
 ];
-
 export const STAGE_LABELS = {
   uploaded: "Upload complete",
   queued: "Queued for processing",
@@ -20,13 +16,12 @@ export const STAGE_LABELS = {
   completed: "Completed",
   failed: "Failed",
 };
-
 export const TERMINAL_STATUSES = new Set(["completed", "failed"]);
-
+// Tells the caller whether a note has reached a status that will never change again.
 export function isTerminalStatus(status) {
   return TERMINAL_STATUSES.has(status);
 }
-
+// Picks the badge colour classes that go with a given status.
 export function statusBadgeClasses(status) {
   switch (status) {
     case "completed":
@@ -40,19 +35,13 @@ export function statusBadgeClasses(status) {
       return "bg-primary-light text-primary";
   }
 }
-
-/**
- * Returns each pipeline stage annotated with whether it's done, active, or
- * upcoming relative to the note's current status — the data behind the
- * checklist-style progress UI (never a fabricated percentage).
- */
+// Marks every stage as done, active or upcoming so the progress checklist can render itself.
 export function getStageChecklist(currentStatus) {
   if (currentStatus === "failed") {
     return STAGE_ORDER.map((stage) => ({ stage, state: "done" })).concat([
       { stage: "failed", state: "failed" },
     ]);
   }
-
   const currentIndex = STAGE_ORDER.indexOf(currentStatus);
   return STAGE_ORDER.map((stage, index) => {
     let state = "upcoming";

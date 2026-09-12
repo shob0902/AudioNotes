@@ -1,8 +1,6 @@
+// The controlled search input in the topbar; the filtering itself happens in Dashboard.
 import { SearchIcon } from "./icons.jsx";
-
-/** Controlled search input — filtering logic lives in Dashboard.jsx, which
- * owns the notes list this searches over (title + filename; topics aren't
- * available in the list endpoint, see app/schemas/note.py NoteListItem). */
+// Renders the input with its magnifier icon and reports every keystroke to the parent.
 export default function SearchBar({ value, onChange, placeholder = "Search recordings, summaries, topics..." }) {
   return (
     <label className="relative flex w-full items-center">

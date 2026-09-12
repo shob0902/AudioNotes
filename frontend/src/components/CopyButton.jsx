@@ -1,13 +1,12 @@
+// The small copy-to-clipboard button that briefly swaps to a "Copied" tick.
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-
 import AnimatedCheck from "./ui/AnimatedCheck.jsx";
 import { useToast } from "../context/ToastContext.jsx";
-
+// Writes the text to the clipboard, shows a toast, and quietly does nothing if access is denied.
 export default function CopyButton({ text, label = "Copy", toastMessage }) {
   const [copied, setCopied] = useState(false);
   const notify = useToast();
-
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(text || "");
@@ -15,11 +14,8 @@ export default function CopyButton({ text, label = "Copy", toastMessage }) {
       notify(toastMessage || `${label} copied to clipboard`, { type: "success" });
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      // Clipboard access can be denied by the browser — fail silently
-      // rather than showing a scary error for a non-critical convenience.
     }
   };
-
   return (
     <button
       type="button"
@@ -27,10 +23,6 @@ export default function CopyButton({ text, label = "Copy", toastMessage }) {
       aria-label={label}
       className="inline-flex items-center gap-1.5 rounded-lg border border-glass-border bg-elevated px-2.5 py-1.5 text-xs font-medium text-ink shadow-soft transition-transform active:scale-95"
     >
-      {/* No mode="wait" — see NoteDetail.jsx's comment on the same fix: a
-          nested AnimatePresence with mode="wait" can leave the *page-level*
-          AnimatePresence (App.jsx) unable to finish unmounting this whole
-          page if you navigate away while this little swap is mid-exit. */}
       <AnimatePresence initial={false}>
         {copied ? (
           <motion.span

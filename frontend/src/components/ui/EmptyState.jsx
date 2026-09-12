@@ -1,5 +1,6 @@
+// The large placeholder shown when a page or list has nothing to display yet.
 import { motion } from "framer-motion";
-
+// Renders a floating icon with a title, optional description and optional call to action.
 export default function EmptyState({ icon, title, description, action }) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-primary/25 bg-surface px-6 py-14 text-center">

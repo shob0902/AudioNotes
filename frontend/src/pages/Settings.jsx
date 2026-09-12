@@ -1,16 +1,14 @@
+// The settings page showing the signed-in account, a log-out button and some app information.
 import { Link, useNavigate } from "react-router-dom";
-
 import Button from "../components/ui/Button.jsx";
 import Card from "../components/ui/Card.jsx";
 import { SettingsIcon } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-
 const GITHUB_REPO_URL = import.meta.env.VITE_GITHUB_REPO_URL || "https://github.com/<your-username>/audio-notes";
-
+// Renders the account card and the about card, and sends the user home after logging out.
 export default function Settings() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-
   return (
     <div className="space-y-6">
       <div>
@@ -20,7 +18,6 @@ export default function Settings() {
         </h1>
         <p className="mt-1 text-sm text-muted">Account and app information.</p>
       </div>
-
       <Card variant="elevated" className="p-6">
         <p className="text-sm font-semibold text-ink">Account</p>
         <p className="mt-1 text-sm text-muted">{user?.email}</p>
@@ -36,7 +33,6 @@ export default function Settings() {
           Log out
         </Button>
       </Card>
-
       <Card variant="elevated" className="divide-y divide-black/5 p-6">
         <div className="pb-4">
           <p className="text-sm font-semibold text-ink">Audio Notes Platform</p>

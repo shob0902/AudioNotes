@@ -1,9 +1,7 @@
+// The confirmation dialog used in place of window.confirm, currently for deleting a recording.
 import { AnimatePresence, motion } from "framer-motion";
-
 import Button from "./Button.jsx";
-
-/** Confirmation modal — replaces window.confirm() for deletes so the whole
- * app stays visually consistent (used by the delete-recording flow). */
+// Fades in a backdrop and a centred dialog, and closes on backdrop click or cancel.
 export default function Modal({ open, title, description, confirmLabel = "Confirm", danger, onConfirm, onCancel }) {
   return (
     <AnimatePresence>

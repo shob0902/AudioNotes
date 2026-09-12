@@ -1,27 +1,9 @@
-# Render Blueprint — optional one-shot way to provision every service this
-# project needs. You (the user) run this; Claude does not deploy anything.
-#
-# Usage: Render dashboard -> New -> Blueprint -> point at this repo -> Apply.
-# Values marked `sync: false` are secrets/URLs Render will prompt you for
-# (or that you fill in after the first deploy once dependent service URLs
-# exist — see README.md "Deployment" for the exact order of operations).
-#
-# You can also skip this file entirely and create the two services by hand
-# by following the manual steps in README.md — both paths produce the same
-# result.
-
+# Render Blueprint that provisions the backend web service, the static frontend and their shared env vars.
 envVarGroups:
   - name: audio-notes-shared
     envVars:
-      # Using Neon (Postgres) instead of Render's own managed Postgres —
-      # Neon's free tier is permanent, whereas Render's free Postgres
-      # expires after 30 days. Fill this in with your own Neon connection
-      # string when prompted (see README.md "Deployment").
       - key: DATABASE_URL
-        sync: false # postgresql+psycopg://...neon.tech/neondb?sslmode=require
-      # generateValue lets Render create a cryptographically random secret
-      # itself, since — unlike GNANI_API_KEY/GROQ_API_KEY — nothing external
-      # needs to match this value.
+        sync: false
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: JWT_ALGORITHM
@@ -73,8 +55,7 @@ envVarGroups:
       - key: MIN_AUDIO_DURATION_SECONDS
         value: "120"
       - key: FRONTEND_URL
-        sync: false # set to your deployed frontend URL(s), comma-separated for multiple origins
-
+        sync: false
 services:
   - type: web
     name: audio-notes-backend
@@ -88,8 +69,7 @@ services:
       - audio-notes-shared
     envVars:
       - key: BACKEND_URL
-        sync: false # set to this service's own Render URL once known
-
+        sync: false
   - type: web
     name: audio-notes-frontend
     runtime: static
@@ -98,12 +78,10 @@ services:
     staticPublishPath: ./dist
     envVars:
       - key: VITE_API_BASE_URL
-        sync: false # set to https://<audio-notes-backend-url>/api
+        sync: false
       - key: VITE_GITHUB_REPO_URL
         sync: false
     routes:
-      # React Router uses client-side routing (/notes/:id, /architecture) —
-      # every path must fall back to index.html.
       - type: rewrite
         source: /*
         destination: /index.html

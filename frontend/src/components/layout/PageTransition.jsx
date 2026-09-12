@@ -1,8 +1,6 @@
+// The fade-and-rise animation wrapper applied to every routed page.
 import { motion } from "framer-motion";
-
-/** Wraps each route's content in a consistent fade + slight upward motion
- * (Level 3 "experience" animation, ~350ms) — see App.jsx for how this is
- * keyed per-route via AnimatePresence. */
+// Fades its children in on entry and back out on exit as the route changes.
 export default function PageTransition({ children }) {
   return (
     <motion.div

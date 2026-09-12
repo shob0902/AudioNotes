@@ -1,21 +1,12 @@
+// The action items card, where each item can be ticked off and the state is kept in this browser.
 import { motion } from "framer-motion";
-
 import Card from "./ui/Card.jsx";
 import AnimatedCheck from "./ui/AnimatedCheck.jsx";
 import { EmptyStateSmall } from "./EmptyStateSmall.jsx";
 import { useLocalStorageSet } from "../hooks/useLocalStorageSet.js";
-
-/**
- * Checkable action items. Our summary schema stores these as plain strings
- * (no assignee field — see app/schemas/note.py NoteSummary), so unlike the
- * mockup this doesn't invent per-person assignees. "Checked" state is
- * client-side only (localStorage, per browser) since there's no auth to
- * scope real per-user completion to — see /architecture's Future
- * Improvements.
- */
+// Renders each item as a toggle button and remembers which ones are checked for this note.
 export default function ActionItems({ noteId, items }) {
   const { has, toggle } = useLocalStorageSet(`audio-notes:checked-items:${noteId}`);
-
   return (
     <Card variant="elevated" className="p-6">
       <h2 className="text-base font-bold text-ink">Action Items</h2>

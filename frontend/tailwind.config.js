@@ -1,20 +1,14 @@
-/** @type {import('tailwindcss').Config} */
+// Tailwind theme for the dark teal design: colors, shadows, fonts and animations used app-wide.
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
       colors: {
-        // "Nearly Black & Teal" — dark neumorphism, single source of truth
-        // referenced by every component (bg-app, text-ink, etc.) instead of
-        // scattering raw hex values through the codebase. Four depth
-        // levels of nearly-black surfaces, teal as the only accent color
-        // (per the spec: "use teal for ALL interactive elements, no other
-        // accent colors").
-        app: "#050505", // Level 0 — page background
-        sidebar: "#0F1419", // Level 1 — sidebar / nav surfaces
-        surface: "#1A2428", // Level 2 — cards, buttons, inputs (default)
-        "surface-hover": "#1F2A30", // card hover background
-        elevated: "#252D33", // Level 3 — inputs, secondary buttons, active nav
+        app: "#050505",
+        sidebar: "#0F1419",
+        surface: "#1A2428",
+        "surface-hover": "#1F2A30",
+        elevated: "#252D33",
         primary: {
           DEFAULT: "#0D9B8C",
           hover: "#14B8A6",
@@ -27,14 +21,9 @@ export default {
         success: "#10B981",
         warning: "#FFA500",
         danger: "#EF4444",
-        // Teal border at 15% — neumorphic panels get their edge definition
-        // from this rather than a glass blur/translucency effect.
         "glass-border": "rgba(20, 184, 166, 0.15)",
       },
       fontFamily: {
-        // System font stack, not a web font — loads instantly, reads as
-        // native, and is highly legible on dark backgrounds (the whole
-        // reason this theme's spec calls for it over something like Inter).
         sans: [
           "Segoe UI",
           "system-ui",
@@ -47,18 +36,11 @@ export default {
         ],
       },
       boxShadow: {
-        // Dark neumorphism's signature dual shadow: a dark shadow toward
-        // the bottom-right (depth) plus a faint light highlight toward the
-        // top-left (a hint of light hitting the raised surface) — see
-        // Card.jsx for how surfaces use these.
         soft: "4px 4px 12px rgba(0, 0, 0, 0.3), -2px -2px 8px rgba(255, 255, 255, 0.08)",
         "soft-lg": "0 8px 32px rgba(0, 0, 0, 0.4), 0 0 15px rgba(20, 184, 166, 0.15)",
         "soft-hover":
           "0 0 20px rgba(20, 184, 166, 0.25), 4px 4px 12px rgba(0, 0, 0, 0.3), -2px -2px 8px rgba(255, 255, 255, 0.08)",
         inset: "inset 4px 4px 12px rgba(0, 0, 0, 0.3), inset -2px -2px 8px rgba(255, 255, 255, 0.05)",
-        // Pressed neumorphic state plus the teal accent glow — the active
-        // tab/nav-item look (sidebar NavList, Tabs). Same dual inset shadow
-        // as `inset`, with a soft outer teal halo layered on top.
         "inset-glow": "inset 4px 4px 12px rgba(0, 0, 0, 0.3), inset -2px -2px 8px rgba(255, 255, 255, 0.05), 0 0 12px rgba(20, 184, 166, 0.2)",
         "glow-cyan": "0 0 0 3px rgba(20, 184, 166, 0.3)",
       },

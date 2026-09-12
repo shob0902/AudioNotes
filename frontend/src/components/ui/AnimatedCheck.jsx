@@ -1,13 +1,8 @@
+// Checkmark icon that draws itself in, used wherever something is marked done.
 import { motion, useReducedMotion } from "framer-motion";
-
-/**
- * A checkmark that draws itself via SVG stroke animation. Reused everywhere
- * a "this is done" state appears (key points, action items, upload
- * complete, processing complete) instead of a bespoke animation per spot.
- */
+// Animates the tick's stroke, or shows it straight away when reduced motion is preferred.
 export default function AnimatedCheck({ size = 16, className = "", delay = 0 }) {
   const reduceMotion = useReducedMotion();
-
   return (
     <svg
       width={size}

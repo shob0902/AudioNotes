@@ -1,6 +1,6 @@
+// The drag-and-drop upload card that picks an audio file and sends it to the backend.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-
 import Button from "./ui/Button.jsx";
 import Card from "./ui/Card.jsx";
 import AnimatedCheck from "./ui/AnimatedCheck.jsx";
@@ -8,13 +8,10 @@ import { UploadCloudIcon } from "./icons.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import { ApiError, uploadNote } from "../services/api.js";
 import { formatDuration, formatFileSize } from "../utils/format.js";
-
 const SUPPORTED_FORMATS = ["MP3", "WAV", "M4A", "AAC", "OGG", "FLAC"];
 const MAX_FILE_SIZE_MB = Number(import.meta.env.VITE_MAX_UPLOAD_SIZE_MB || 200);
 const RECOMMENDED_MIN_MINUTES = 2;
-
-/** Best-effort client-side duration preview via the browser's own decoder —
- * the backend re-validates with ffmpeg regardless (see app/utils/audio.py). */
+// Reads the file's duration with the browser's own decoder, just to preview it before upload.
 function probeClientDuration(file) {
   return new Promise((resolve) => {
     const audio = document.createElement("audio");
@@ -31,7 +28,7 @@ function probeClientDuration(file) {
     };
   });
 }
-
+// Handles picking or dropping a file, shows its details, and uploads it on confirmation.
 export default function UploadCard({ onUploaded, focusRequestId, id }) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -42,28 +39,22 @@ export default function UploadCard({ onUploaded, focusRequestId, id }) {
   const inputRef = useRef(null);
   const cardRef = useRef(null);
   const notify = useToast();
-
-  // Sidebar's "Upload New" link bumps focusRequestId to scroll this card
-  // into view and open the file picker, without a separate route/page.
   useEffect(() => {
     if (focusRequestId) {
       cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, [focusRequestId]);
-
   const handleFile = useCallback(async (file) => {
     if (!file) return;
     setError(null);
     setSelectedFile(file);
     setDuration(await probeClientDuration(file));
   }, []);
-
   const handleDrop = (event) => {
     event.preventDefault();
     setIsDragging(false);
     handleFile(event.dataTransfer.files?.[0]);
   };
-
   const handleUpload = async () => {
     if (!selectedFile) return;
     setIsUploading(true);
@@ -86,20 +77,14 @@ export default function UploadCard({ onUploaded, focusRequestId, id }) {
       setIsUploading(false);
     }
   };
-
   const reset = () => {
     setSelectedFile(null);
     setDuration(null);
     setError(null);
     if (inputRef.current) inputRef.current.value = "";
   };
-
   return (
     <Card id={id} ref={cardRef} variant="elevated-lg" className="p-6 sm:p-10">
-      {/* No mode="wait" — see NoteDetail.jsx's comment on the same fix: a
-          nested AnimatePresence with mode="wait" can leave the *page-level*
-          AnimatePresence (App.jsx) unable to finish unmounting this whole
-          page if you navigate away while this is mid-exit. */}
       <AnimatePresence>
         {!selectedFile ? (
           <motion.label
@@ -178,7 +163,6 @@ export default function UploadCard({ onUploaded, focusRequestId, id }) {
                 Remove
               </button>
             </div>
-
             <div className="mt-4 flex items-center gap-3">
               <Button variant="primary" size="md" onClick={handleUpload} disabled={isUploading || justUploaded}>
                 <AnimatePresence initial={false}>
@@ -212,7 +196,6 @@ export default function UploadCard({ onUploaded, focusRequestId, id }) {
           </motion.div>
         )}
       </AnimatePresence>
-
       {error && (
         <motion.div
           role="alert"

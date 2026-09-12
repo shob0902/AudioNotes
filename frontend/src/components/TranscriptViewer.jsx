@@ -1,14 +1,7 @@
+// The scrollable transcript panel, shown as one continuous block since there are no timestamps.
 import Card from "./ui/Card.jsx";
 import CopyButton from "./CopyButton.jsx";
-
-/**
- * Gnani's STT response returns plain transcript text with no per-word/
- * per-sentence timestamps (see /architecture — the response is just
- * { success, request_id, timestamp, transcript }, where `timestamp` is the
- * server's request time, not an audio position). So unlike a
- * timestamp-per-paragraph mockup, this deliberately shows one continuous,
- * readable transcript rather than fabricating sync points that don't exist.
- */
+// Renders the transcript in a scrolling box with a button to copy the whole thing.
 export default function TranscriptViewer({ transcript }) {
   return (
     <Card variant="elevated" className="p-6">

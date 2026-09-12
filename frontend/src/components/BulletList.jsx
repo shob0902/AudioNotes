@@ -1,13 +1,9 @@
+// A ticked bullet list card, shared by both the Key Points and Decisions sections.
 import { motion } from "framer-motion";
-
 import Card from "./ui/Card.jsx";
 import AnimatedCheck from "./ui/AnimatedCheck.jsx";
 import { EmptyStateSmall } from "./EmptyStateSmall.jsx";
-
-/**
- * Reused for both "Key Points" and "Decisions" (same visual language, just
- * different data/title/icon) rather than two near-duplicate components.
- */
+// Staggers each bullet in with its own drawn tick, or shows the empty line when the list is empty.
 export default function BulletList({ title, items, emptyText }) {
   return (
     <Card variant="elevated" className="p-6">

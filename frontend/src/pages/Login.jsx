@@ -1,13 +1,13 @@
+// The login page with the email and password form.
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-
 import Button from "../components/ui/Button.jsx";
 import Card from "../components/ui/Card.jsx";
 import ErrorBanner from "../components/ErrorBanner.jsx";
 import { MicIcon } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { ApiError } from "../services/api.js";
-
+// Submits the credentials and, on success, sends the user on to wherever they were headed.
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -16,9 +16,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const redirectTo = location.state?.from || "/dashboard";
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError(null);
@@ -32,7 +30,6 @@ export default function Login() {
       setIsSubmitting(false);
     }
   };
-
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card variant="elevated-lg" className="w-full max-w-sm p-8">
@@ -43,7 +40,6 @@ export default function Login() {
           <h1 className="text-xl font-bold text-ink">Welcome back</h1>
           <p className="text-sm text-muted">Log in to see your recordings.</p>
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink">
@@ -75,14 +71,11 @@ export default function Login() {
               placeholder="••••••••"
             />
           </div>
-
           <ErrorBanner message={error} />
-
           <Button type="submit" variant="primary" size="md" disabled={isSubmitting} className="w-full">
             {isSubmitting ? "Logging in..." : "Log in"}
           </Button>
         </form>
-
         <p className="mt-6 text-center text-sm text-muted">
           Don't have an account?{" "}
           <Link to="/signup" className="font-medium text-primary hover:underline">

@@ -1,12 +1,11 @@
+// The public marketing page at the root URL, explaining the product in three steps.
 import { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
 import Button from "../components/ui/Button.jsx";
 import Card from "../components/ui/Card.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { MicIcon, SparkleIcon, UploadCloudIcon } from "../components/icons.jsx";
-
 const STEPS = [
   {
     icon: UploadCloudIcon,
@@ -24,28 +23,18 @@ const STEPS = [
     description: "Groq's LLM extracts key points, action items, decisions, and topics — instantly searchable.",
   },
 ];
-
+// Sends anyone already logged in to their dashboard, and otherwise renders the pitch.
 export default function Landing() {
   const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // If ProtectedRoute sent us here (state.from set), forward that along to
-  // Login so it can still send the user back to the page they wanted after
-  // they sign in — landing on "/" doesn't have to break that chain.
   const loginState = location.state?.from ? { from: location.state.from } : undefined;
-
-  // Someone already logged in has no reason to see marketing copy — send
-  // them straight to their notes. Imperative (not <Navigate>) for the same
-  // reason as ProtectedRoute: avoids fighting AnimatePresence's exit-hold.
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       navigate("/dashboard", { replace: true });
     }
   }, [isLoading, isAuthenticated, navigate]);
-
   if (isLoading || isAuthenticated) return null;
-
   return (
     <div className="min-h-screen">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-4 py-6 sm:px-6">
@@ -59,7 +48,6 @@ export default function Landing() {
           Log in
         </Link>
       </header>
-
       <main className="mx-auto max-w-3xl px-4 pb-24 pt-12 text-center sm:px-6 sm:pt-20">
         <motion.h1
           initial={{ opacity: 0, y: 12 }}
@@ -78,7 +66,6 @@ export default function Landing() {
           Upload any recording and let AI do the rest — a full transcript plus a structured summary with key
           points, action items, and decisions, ready in minutes.
         </motion.p>
-
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -96,7 +83,6 @@ export default function Landing() {
             </Button>
           </Link>
         </motion.div>
-
         <div className="mt-16 grid grid-cols-1 gap-4 text-left sm:grid-cols-3">
           {STEPS.map((step, index) => {
             const Icon = step.icon;
@@ -118,7 +104,6 @@ export default function Landing() {
             );
           })}
         </div>
-
         <p className="mt-16 text-xs text-muted">
           Curious how it works under the hood?{" "}
           <Link to="/architecture" className="font-medium text-primary hover:underline">

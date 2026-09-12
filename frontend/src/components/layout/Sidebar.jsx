@@ -1,6 +1,6 @@
+// The navigation sidebar, in both its fixed desktop form and its mobile drawer form.
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useLocation, useNavigate, useSearchParams } from "react-router-dom";
-
 import { useAuth } from "../../context/AuthContext.jsx";
 import {
   CloseIcon,
@@ -11,7 +11,6 @@ import {
   StarIcon,
   UploadCloudIcon,
 } from "../icons.jsx";
-
 const NAV_ITEMS = [
   { to: "/dashboard", filter: null, icon: DashboardIcon, label: "Dashboard" },
   { to: "/dashboard", filter: "all", icon: MicIcon, label: "My Recordings" },
@@ -20,19 +19,18 @@ const NAV_ITEMS = [
   { to: "/dashboard", filter: "favorites", icon: StarIcon, label: "Favorites" },
   { to: "/settings", filter: null, icon: SettingsIcon, label: "Settings" },
 ];
-
+// Works out whether a nav item matches the current path, filter and action.
 function isItemActive(item, pathname, currentFilter, currentAction) {
   if (item.to !== pathname) return false;
   if (item.action) return currentAction === item.action;
   return (item.filter ?? null) === (currentFilter ?? null) && !currentAction;
 }
-
+// Renders the nav links and highlights whichever one matches the current URL.
 function NavList({ onNavigate }) {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const currentFilter = searchParams.get("filter");
   const currentAction = searchParams.get("action");
-
   return (
     <nav className="flex flex-col gap-1">
       {NAV_ITEMS.map((item) => {
@@ -46,16 +44,6 @@ function NavList({ onNavigate }) {
             onClick={onNavigate}
             className={`relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 ${active ? "" : "hover:bg-surface hover:shadow-soft active:shadow-inset"}`}
           >
-            {/* No layoutId here (previously "sidebar-active-bg"): Sidebar
-                remounts fresh on every route change (it lives inside each
-                route's element, not hoisted above <Routes>), so a shared
-                layoutId here spans across the page-level AnimatePresence
-                mode="wait" boundary in App.jsx — framer-motion's shared-
-                layout (FLIP) animation and mode="wait"'s "don't mount the
-                new tree until the old one's exit finishes" can deadlock
-                each other. Concretely: navigate away from a page and the
-                URL changes but the old page stays stuck on screen. A plain
-                fade-in has no cross-tree coordination to deadlock on. */}
             {active && (
               <motion.span
                 initial={{ opacity: 0 }}
@@ -77,7 +65,7 @@ function NavList({ onNavigate }) {
     </nav>
   );
 }
-
+// The app name and logo block at the top of the sidebar.
 function SidebarBrand() {
   return (
     <div className="mb-8 flex items-center gap-2.5 px-1">
@@ -91,15 +79,11 @@ function SidebarBrand() {
     </div>
   );
 }
-
-/** Shows the logged-in user's email + a log-out action. Renders nothing
- * for public pages (e.g. /architecture) viewed while signed out. */
+// Shows the signed-in email and a log-out button, and renders nothing when signed out.
 function UserFooter() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-
   if (!user) return null;
-
   return (
     <div className="mt-auto pt-6">
       <div className="rounded-xl bg-elevated border border-glass-border px-3.5 py-3 shadow-inset">
@@ -120,8 +104,7 @@ function UserFooter() {
     </div>
   );
 }
-
-/** Desktop sidebar: fixed, always visible at lg+. */
+// The always-visible sidebar shown from the large breakpoint upwards.
 export function DesktopSidebar() {
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 animate-slide-in flex-col border-r border-glass-border bg-sidebar px-4 py-6 lg:flex">
@@ -131,8 +114,7 @@ export function DesktopSidebar() {
     </aside>
   );
 }
-
-/** Mobile sidebar: slide-in drawer with a fading backdrop. */
+// The slide-in drawer version of the sidebar used on small screens.
 export function MobileSidebar({ open, onClose }) {
   return (
     <AnimatePresence>

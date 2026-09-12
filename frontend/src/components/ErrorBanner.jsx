@@ -1,10 +1,9 @@
+// The red inline alert used to show an error, with an optional retry button.
 import { motion } from "framer-motion";
-
 import Button from "./ui/Button.jsx";
-
+// Renders nothing without a message, otherwise slides in the warning and any retry action.
 export default function ErrorBanner({ message, onRetry }) {
   if (!message) return null;
-
   return (
     <motion.div
       initial={{ opacity: 0, y: -6 }}

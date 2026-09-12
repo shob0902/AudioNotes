@@ -1,22 +1,12 @@
-"""initial notes table
-
-Revision ID: 202608250001
-Revises:
-Create Date: 2026-08-25 00:01:00
-
-"""
+# First migration: creates the note_status enum and the notes table with its indexes.
 from typing import Sequence, Union
-
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
-
-# revision identifiers, used by Alembic.
 revision: str = "202608250001"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
-
 note_status_enum = postgresql.ENUM(
     "uploaded",
     "queued",
@@ -27,11 +17,9 @@ note_status_enum = postgresql.ENUM(
     "failed",
     name="note_status",
 )
-
-
+# Creates the status enum, then the notes table and the two indexes it is queried by.
 def upgrade() -> None:
     note_status_enum.create(op.get_bind(), checkfirst=True)
-
     op.create_table(
         "notes",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False),
@@ -76,8 +64,7 @@ def upgrade() -> None:
     )
     op.create_index("ix_notes_status", "notes", ["status"])
     op.create_index("ix_notes_created_at", "notes", ["created_at"])
-
-
+# Drops the indexes, the notes table and the status enum again.
 def downgrade() -> None:
     op.drop_index("ix_notes_created_at", table_name="notes")
     op.drop_index("ix_notes_status", table_name="notes")

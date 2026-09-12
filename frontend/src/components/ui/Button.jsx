@@ -1,23 +1,17 @@
+// The shared button primitive, so hover and press behaviour is the same everywhere.
 import { motion } from "framer-motion";
-
 const VARIANTS = {
   primary: "bg-primary text-white shadow-soft hover:bg-primary-hover hover:shadow-soft-hover",
   secondary: "bg-elevated border border-glass-border text-primary shadow-soft hover:bg-surface-hover hover:border-primary/50 hover:text-accent",
   ghost: "bg-transparent text-muted hover:bg-primary-light hover:text-ink",
   danger: "bg-elevated border border-glass-border text-danger shadow-soft hover:bg-danger/10",
 };
-
 const SIZES = {
   sm: "px-3 py-1.5 text-xs",
   md: "px-4 py-2.5 text-sm",
   lg: "px-5 py-3 text-sm",
 };
-
-/**
- * The one button primitive every page uses, so hover/press micro-interaction
- * (Level 1 animation, ~150ms) stays consistent app-wide instead of being
- * hand-tuned per instance.
- */
+// Renders a button in the chosen variant and size, with the lift and press animations attached.
 export default function Button({
   variant = "primary",
   size = "md",

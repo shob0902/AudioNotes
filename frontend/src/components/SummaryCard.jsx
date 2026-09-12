@@ -1,9 +1,9 @@
+// The TL;DR card at the top of a note, showing the one-paragraph summary.
 import { motion } from "framer-motion";
-
 import Card from "./ui/Card.jsx";
 import CopyButton from "./CopyButton.jsx";
 import { SparkleIcon } from "./icons.jsx";
-
+// Fades in the summary text alongside a button to copy it.
 export default function SummaryCard({ summary }) {
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}>

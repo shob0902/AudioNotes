@@ -1,9 +1,8 @@
+// The architecture write-up page, presented as a scroll-driven gallery of numbered sections.
 import ArchitectureDiagram from "../components/ArchitectureDiagram.jsx";
 import Card from "../components/ui/Card.jsx";
 import HorizontalScrollGallery from "../components/HorizontalScrollGallery.jsx";
-
 const GITHUB_REPO_URL = import.meta.env.VITE_GITHUB_REPO_URL || "https://github.com/<your-username>/audio-notes";
-
 const SECTIONS = [
   {
     number: 1,
@@ -244,7 +243,7 @@ const SECTIONS = [
     ),
   },
 ];
-
+// Renders the page header with the repo link, then hands the sections to the scrolling gallery.
 export default function Architecture() {
   return (
     <div className="space-y-6">
@@ -270,7 +269,6 @@ export default function Architecture() {
           </a>
         </div>
       </Card>
-
       <HorizontalScrollGallery items={SECTIONS} />
     </div>
   );

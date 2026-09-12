@@ -1,13 +1,13 @@
+// The signup page with the email and password form for creating an account.
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 import Button from "../components/ui/Button.jsx";
 import Card from "../components/ui/Card.jsx";
 import ErrorBanner from "../components/ErrorBanner.jsx";
 import { MicIcon } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { ApiError } from "../services/api.js";
-
+// Creates the account and drops the new user straight onto their dashboard.
 export default function Signup() {
   const { signup } = useAuth();
   const navigate = useNavigate();
@@ -15,7 +15,6 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError(null);
@@ -29,7 +28,6 @@ export default function Signup() {
       setIsSubmitting(false);
     }
   };
-
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card variant="elevated-lg" className="w-full max-w-sm p-8">
@@ -40,7 +38,6 @@ export default function Signup() {
           <h1 className="text-xl font-bold text-ink">Create your account</h1>
           <p className="text-sm text-muted">Your recordings and summaries stay private to you.</p>
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink">
@@ -73,14 +70,11 @@ export default function Signup() {
               placeholder="At least 8 characters"
             />
           </div>
-
           <ErrorBanner message={error} />
-
           <Button type="submit" variant="primary" size="md" disabled={isSubmitting} className="w-full">
             {isSubmitting ? "Creating account..." : "Sign up"}
           </Button>
         </form>
-
         <p className="mt-6 text-center text-sm text-muted">
           Already have an account?{" "}
           <Link to="/login" className="font-medium text-primary hover:underline">

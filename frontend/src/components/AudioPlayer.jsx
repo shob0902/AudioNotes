@@ -1,19 +1,11 @@
+// The audio player for a note, wrapping a real audio element with play, seek, speed and volume controls.
 import { useEffect, useRef, useState } from "react";
-
 import Waveform from "./Waveform.jsx";
 import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon, VolumeIcon } from "./icons.jsx";
 import { formatDuration } from "../utils/format.js";
-
 const SPEEDS = [1, 1.25, 1.5, 2];
 const SKIP_SECONDS = 10;
-
-/**
- * Real audio playback (backed by StorageService's pre-signed/public URL via
- * GET /api/notes/{id} -> audio_url). The waveform is decorative (see
- * utils/waveform.js) but play position, seeking, speed, and volume are all
- * genuine <audio> element state — kept secondary in visual weight to the
- * transcript/summary per the product's "audio is the input" framing.
- */
+// Tracks the audio element's position and duration and wires the transport buttons up to it.
 export default function AudioPlayer({ audioUrl, seed, fallbackDuration }) {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -22,15 +14,12 @@ export default function AudioPlayer({ audioUrl, seed, fallbackDuration }) {
   const [speedIndex, setSpeedIndex] = useState(0);
   const [volume, setVolume] = useState(1);
   const [showVolume, setShowVolume] = useState(false);
-
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return undefined;
-
     const onTimeUpdate = () => setCurrentTime(audio.currentTime);
     const onLoadedMetadata = () => setDuration(audio.duration || fallbackDuration || 0);
     const onEnded = () => setIsPlaying(false);
-
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("loadedmetadata", onLoadedMetadata);
     audio.addEventListener("ended", onEnded);
@@ -40,9 +29,7 @@ export default function AudioPlayer({ audioUrl, seed, fallbackDuration }) {
       audio.removeEventListener("ended", onEnded);
     };
   }, [fallbackDuration]);
-
   if (!audioUrl) return null;
-
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -50,46 +37,37 @@ export default function AudioPlayer({ audioUrl, seed, fallbackDuration }) {
     else audio.play().catch(() => {});
     setIsPlaying(!isPlaying);
   };
-
   const seekToRatio = (ratio) => {
     const audio = audioRef.current;
     if (!audio || !duration) return;
     audio.currentTime = ratio * duration;
     setCurrentTime(audio.currentTime);
   };
-
   const skip = (seconds) => {
     const audio = audioRef.current;
     if (!audio) return;
     audio.currentTime = Math.min(Math.max(audio.currentTime + seconds, 0), duration || Infinity);
     setCurrentTime(audio.currentTime);
   };
-
   const cycleSpeed = () => {
     const nextIndex = (speedIndex + 1) % SPEEDS.length;
     setSpeedIndex(nextIndex);
     if (audioRef.current) audioRef.current.playbackRate = SPEEDS[nextIndex];
   };
-
   const handleVolumeChange = (e) => {
     const value = Number(e.target.value);
     setVolume(value);
     if (audioRef.current) audioRef.current.volume = value;
   };
-
   const progress = duration ? currentTime / duration : 0;
-
   return (
     <div className="rounded-2xl border border-glass-border bg-elevated p-4 shadow-inset sm:p-5">
       <audio ref={audioRef} src={audioUrl} preload="metadata" />
-
       <Waveform seed={seed} progress={progress} isPlaying={isPlaying} onSeek={seekToRatio} />
-
       <div className="mt-1 flex items-center justify-between text-xs text-muted tabular-nums">
         <span>{formatDuration(currentTime)}</span>
         <span>{formatDuration(duration)}</span>
       </div>
-
       <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
         <button
           type="button"
@@ -99,7 +77,6 @@ export default function AudioPlayer({ audioUrl, seed, fallbackDuration }) {
         >
           <SkipBackIcon className="h-5 w-5" />
         </button>
-
         <button
           type="button"
           onClick={togglePlay}
@@ -108,7 +85,6 @@ export default function AudioPlayer({ audioUrl, seed, fallbackDuration }) {
         >
           {isPlaying ? <PauseIcon className="h-5 w-5" /> : <PlayIcon className="h-5 w-5 translate-x-0.5" />}
         </button>
-
         <button
           type="button"
           onClick={() => skip(SKIP_SECONDS)}
@@ -117,7 +93,6 @@ export default function AudioPlayer({ audioUrl, seed, fallbackDuration }) {
         >
           <SkipForwardIcon className="h-5 w-5" />
         </button>
-
         <div className="ml-2 flex items-center gap-2">
           <button
             type="button"
@@ -127,7 +102,6 @@ export default function AudioPlayer({ audioUrl, seed, fallbackDuration }) {
           >
             {SPEEDS[speedIndex]}x
           </button>
-
           <div className="relative">
             <button
               type="button"

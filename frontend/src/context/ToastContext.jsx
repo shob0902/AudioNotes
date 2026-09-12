@@ -1,10 +1,8 @@
+// Toast context that renders the stacked notification popups and hands out a notify function.
 import { createContext, useCallback, useContext, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-
 const ToastContext = createContext(null);
-
 let idCounter = 0;
-
 const ICONS = {
   success: (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 text-primary">
@@ -34,14 +32,12 @@ const ICONS = {
     </svg>
   ),
 };
-
+// Keeps the list of visible toasts, auto-dismisses each one, and renders the stack.
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
-
   const dismiss = useCallback((id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
-
   const notify = useCallback(
     (message, { type = "success", duration = 3200 } = {}) => {
       const id = ++idCounter;
@@ -51,7 +47,6 @@ export function ToastProvider({ children }) {
     },
     [dismiss]
   );
-
   return (
     <ToastContext.Provider value={notify}>
       {children}
@@ -79,8 +74,7 @@ export function ToastProvider({ children }) {
     </ToastContext.Provider>
   );
 }
-
-/** @returns {(message: string, opts?: { type?: 'success'|'error'|'info', duration?: number }) => void} */
+// Returns the notify function and complains if it is used outside the provider.
 export function useToast() {
   const ctx = useContext(ToastContext);
   if (!ctx) throw new Error("useToast must be used within a ToastProvider");

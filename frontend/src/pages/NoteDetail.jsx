@@ -1,7 +1,7 @@
+// The single note page: audio player, processing progress, and the tabbed transcript and summary.
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-
 import ActionItems from "../components/ActionItems.jsx";
 import AudioPlayer from "../components/AudioPlayer.jsx";
 import BulletList from "../components/BulletList.jsx";
@@ -21,7 +21,6 @@ import { useNoteStatusPolling } from "../hooks/useNoteStatusPolling.js";
 import { ApiError, deleteNote, getNote, retryNote } from "../services/api.js";
 import { formatDate, formatDuration, formatFileSize } from "../utils/format.js";
 import { isTerminalStatus, statusBadgeClasses, STAGE_LABELS } from "../utils/status.js";
-
 const TABS = [
   { id: "summary", label: "Summary" },
   { id: "key_points", label: "Key Points" },
@@ -30,19 +29,17 @@ const TABS = [
   { id: "topics", label: "Topics" },
   { id: "transcript", label: "Transcript" },
 ];
-
+// Loads the note, polls it while it processes, and handles the retry, favorite and delete actions.
 export default function NoteDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const notify = useToast();
   const favorites = useLocalStorageSet("audio-notes:favorites");
-
   const [note, setNote] = useState(null);
   const [loadError, setLoadError] = useState(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [activeTab, setActiveTab] = useState("summary");
-
   const fetchNote = useCallback(async () => {
     try {
       const result = await getNote(id);
@@ -52,16 +49,13 @@ export default function NoteDetail() {
       setLoadError(err instanceof ApiError ? err.message : "Could not load this note.");
     }
   }, [id]);
-
   useEffect(() => {
     fetchNote();
   }, [fetchNote]);
-
   const { status, errorMessage: liveErrorMessage } = useNoteStatusPolling(note?.id, note?.status, () => {
     fetchNote();
     notify("AI summary generated", { type: "success" });
   });
-
   const handleRetry = async () => {
     setIsRetrying(true);
     try {
@@ -74,7 +68,6 @@ export default function NoteDetail() {
       setIsRetrying(false);
     }
   };
-
   const handleDelete = async () => {
     setConfirmDelete(false);
     try {
@@ -85,7 +78,6 @@ export default function NoteDetail() {
       notify(err instanceof ApiError ? err.message : "Could not delete this note.", { type: "error" });
     }
   };
-
   if (loadError) {
     return (
       <div className="space-y-4">
@@ -96,7 +88,6 @@ export default function NoteDetail() {
       </div>
     );
   }
-
   if (!note) {
     return (
       <div className="space-y-4">
@@ -105,13 +96,11 @@ export default function NoteDetail() {
       </div>
     );
   }
-
   const effectiveStatus = status || note.status;
   const isFailed = effectiveStatus === "failed";
   const isCompleted = effectiveStatus === "completed";
   const errorMessage = liveErrorMessage || note.error_message;
   const isFavorite = favorites.has(note.id);
-
   const tabContent = {
     summary: note.summary && <SummaryCard summary={note.summary} />,
     key_points: note.summary && (
@@ -124,13 +113,11 @@ export default function NoteDetail() {
     topics: note.summary && <TopicChips topics={note.summary.topics} />,
     transcript: note.transcript && <TranscriptViewer transcript={note.transcript} />,
   };
-
   return (
     <div className="space-y-6">
       <Link to="/dashboard" className="text-sm font-medium text-primary hover:underline">
         &larr; Back to dashboard
       </Link>
-
       <Card variant="elevated-lg" className="p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
@@ -164,36 +151,22 @@ export default function NoteDetail() {
             </button>
           </div>
         </div>
-
         {note.audio_url && (
           <div className="mt-5">
             <AudioPlayer audioUrl={note.audio_url} seed={note.id} fallbackDuration={note.duration} />
           </div>
         )}
       </Card>
-
       {!isTerminalStatus(effectiveStatus) && <ProcessingStatus status={effectiveStatus} filename={note.original_filename} />}
-
       {isFailed && (
         <Card variant="elevated" className="p-6">
           <ErrorBanner message={errorMessage || "This note failed to process."} onRetry={handleRetry} />
           {isRetrying && <p className="mt-2 text-xs text-muted">Retrying...</p>}
         </Card>
       )}
-
       {isCompleted && note.summary && (
         <div className="space-y-4">
           <Tabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
-          {/* A plain keyed motion.div (animate-in only, no AnimatePresence/
-              exit) rather than the AnimatePresence+mode="wait" this used to
-              have: that nested AnimatePresence — inside the page-level one
-              in App.jsx that handles route transitions — could end up with
-              a pending exit animation of its own at the moment you navigate
-              away, and the outer AnimatePresence won't finish unmounting
-              this whole page until every nested exit animation resolves.
-              Concretely: switch tabs here, then click away to another page,
-              and the URL changes but the old note view stays frozen on
-              screen — this fixes that. */}
           <motion.div
             key={activeTab}
             initial={{ opacity: 0, y: 8 }}
@@ -204,7 +177,6 @@ export default function NoteDetail() {
           </motion.div>
         </div>
       )}
-
       <Modal
         open={confirmDelete}
         title="Delete this recording?"

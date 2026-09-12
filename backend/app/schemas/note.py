@@ -1,52 +1,36 @@
-"""Pydantic response/request schemas for the notes API."""
-
+# Request and response shapes for the notes API.
 import uuid
 from datetime import datetime
 from typing import List, Optional
-
 from pydantic import BaseModel, ConfigDict
-
 from app.models.note import NoteStatus
-
-
+# Structured summary from Groq, matching the JSONB shape stored on Note.summary.
 class NoteSummary(BaseModel):
-    """Structured summary produced by Groq. Matches the shape stored in
-    Note.summary (JSONB)."""
-
     summary: str
     key_points: List[str] = []
     action_items: List[str] = []
     decisions: List[str] = []
     topics: List[str] = []
-
-
+# Minimal payload returned right after an upload, before any processing has run.
 class NoteCreateResponse(BaseModel):
-    """Returned immediately by POST /api/notes — no processing has happened
-    yet, so this intentionally carries almost nothing."""
-
     id: uuid.UUID
     status: NoteStatus
-
-
+# One row of the notes list, trimmed to what the dashboard cards actually show.
 class NoteListItem(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-
     id: uuid.UUID
     title: str
     original_filename: str
     duration: Optional[float]
     status: NoteStatus
     created_at: datetime
-
-
+# A page of notes plus the total count.
 class NoteListResponse(BaseModel):
     items: List[NoteListItem]
     total: int
-
-
+# Full note payload, including the on-demand audio URL the detail page plays back.
 class NoteDetailResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-
     id: uuid.UUID
     title: str
     original_filename: str
@@ -59,18 +43,9 @@ class NoteDetailResponse(BaseModel):
     error_message: Optional[str]
     created_at: datetime
     updated_at: datetime
-    # Not a Note column — a short-lived pre-signed (or public) URL generated
-    # on demand by the route via StorageService.get_file_url(). Lets the
-    # frontend play back the original audio alongside its transcript/summary.
-    # None if the storage backend couldn't be reached; the rest of the note
-    # still renders fine without it.
     audio_url: Optional[str] = None
-
-
+# Small payload for the polling endpoint the frontend hits every couple of seconds.
 class NoteStatusResponse(BaseModel):
-    """Lightweight payload for the polling endpoint — deliberately small
-    since the frontend calls this every 2-3 seconds while a note is active."""
-
     id: uuid.UUID
     status: NoteStatus
     error_message: Optional[str] = None

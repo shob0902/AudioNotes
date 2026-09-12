@@ -1,11 +1,11 @@
+// One recording row on the dashboard, with its status badge, favorite star and delete button.
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-
 import Card from "./ui/Card.jsx";
 import { MicIcon, StarIcon, TrashIcon } from "./icons.jsx";
 import { formatDate, formatDuration } from "../utils/format.js";
 import { STAGE_LABELS, statusBadgeClasses } from "../utils/status.js";
-
+// Links the card body through to the note detail page and keeps the two action buttons separate.
 export default function RecordingCard({ note, isFavorite, onToggleFavorite, onRequestDelete, delayMs = 0 }) {
   return (
     <motion.div
@@ -13,8 +13,6 @@ export default function RecordingCard({ note, isFavorite, onToggleFavorite, onRe
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: delayMs / 1000, ease: "easeOut" }}
     >
-      {/* Hover lift/glow comes from Card itself (see ui/Card.jsx) — no
-          separate whileHover here to avoid stacking two transforms. */}
       <Card variant="elevated" className="p-4">
         <div className="flex items-start gap-2.5 sm:gap-4">
           <Link to={`/notes/${note.id}`} className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-4">
@@ -29,7 +27,6 @@ export default function RecordingCard({ note, isFavorite, onToggleFavorite, onRe
               </p>
             </div>
           </Link>
-
           <div className="flex shrink-0 items-center gap-0.5">
             <motion.button
               type="button"
@@ -52,7 +49,6 @@ export default function RecordingCard({ note, isFavorite, onToggleFavorite, onRe
             </motion.button>
           </div>
         </div>
-
         <Link to={`/notes/${note.id}`}>
           <span className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClasses(note.status)}`}>
             {STAGE_LABELS[note.status] || note.status}

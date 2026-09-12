@@ -1,32 +1,22 @@
+// Catches render crashes in the page content and shows a recoverable message instead of a blank area.
 import { Component } from "react";
-
 import Button from "./ui/Button.jsx";
 import Card from "./ui/Card.jsx";
-
-/**
- * Catches render-time crashes in whatever it wraps and shows a recoverable
- * message instead of leaving that area silently blank. Scoped around just
- * the routed page content (see App.jsx's ShellPage) — not the whole app —
- * so a crash in one page still leaves the sidebar/topbar usable, and "Try
- * again" (a full reload) is always reachable instead of stranding the user.
- *
- * React error boundaries must be class components; there's no hooks
- * equivalent (see https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary).
- */
 export default class ErrorBoundary extends Component {
+  // Starts with no error recorded.
   constructor(props) {
     super(props);
     this.state = { error: null };
   }
-
+  // Moves the boundary into its error state when a child throws during render.
   static getDerivedStateFromError(error) {
     return { error };
   }
-
+  // Logs the crash and the component stack to the console.
   componentDidCatch(error, info) {
     console.error("Unhandled error in page content:", error, info.componentStack);
   }
-
+  // Shows the fallback card once something has thrown, otherwise the children as normal.
   render() {
     if (this.state.error) {
       return (

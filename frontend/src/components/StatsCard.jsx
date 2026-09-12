@@ -1,17 +1,10 @@
+// A single dashboard statistic tile with an icon and an animated number.
 import { motion } from "framer-motion";
-
 import Card from "./ui/Card.jsx";
 import { useCountUp } from "../hooks/useCountUp.js";
-
-/**
- * @param {{ icon: JSX.Element, label: string, value: number, suffix?: string, delayMs?: number }} props
- * `value` always comes from real, aggregated note data (see Dashboard.jsx)
- * — there is no historical data to honestly show a "+N% this week" delta,
- * so this deliberately doesn't fabricate one.
- */
+// Fades the tile in and counts the value up from zero.
 export default function StatsCard({ icon, label, value, suffix = "", delayMs = 0 }) {
   const display = useCountUp(value);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}

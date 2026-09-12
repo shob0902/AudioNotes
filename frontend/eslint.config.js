@@ -1,8 +1,8 @@
+// ESLint setup for the React frontend, including the rules this project turns off.
 import js from "@eslint/js";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
-
 export default [
   { ignores: ["dist", "node_modules"] },
   js.configs.recommended,
@@ -20,8 +20,6 @@ export default [
       ...reactHooks.configs.recommended.rules,
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
-      // Plain apostrophes/quotes in prose-heavy pages (e.g. Architecture)
-      // are far more readable than &apos;/&rsquo; entities.
       "react/no-unescaped-entities": "off",
     },
     settings: { react: { version: "detect" } },

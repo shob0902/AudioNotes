@@ -1,13 +1,9 @@
+// The stage-by-stage progress panel shown while a recording is still being processed.
 import { motion } from "framer-motion";
-
 import AnimatedCheck from "./ui/AnimatedCheck.jsx";
 import { SparkleIcon } from "./icons.jsx";
 import { STAGE_LABELS, STAGE_ORDER, getStageChecklist } from "../utils/status.js";
-
-/** Small animated waveform used as the "transcribing" stage's active
- * indicator — purely decorative motion, not derived from real audio data
- * (see TranscriptViewer.jsx for why we don't fabricate real waveform/timing
- * data from Gnani's response). */
+// The little bouncing bars used as the transcribing stage's activity indicator.
 function MiniWaveform() {
   const bars = [6, 10, 16, 10, 6];
   return (
@@ -24,9 +20,7 @@ function MiniWaveform() {
     </span>
   );
 }
-
-/** Dots drifting toward a sparkle — the "summarizing" stage's active
- * indicator. */
+// Dots drifting into a sparkle, used as the summarizing stage's activity indicator.
 function AnalyzingDots() {
   return (
     <span className="relative flex h-4 w-8 items-center" aria-hidden="true">
@@ -42,7 +36,7 @@ function AnalyzingDots() {
     </span>
   );
 }
-
+// Picks the right marker for a stage: a tick, an error, a live indicator or an empty circle.
 function StageIcon({ stage, state }) {
   if (state === "done") return <AnimatedCheck size={16} className="text-primary" />;
   if (state === "failed") {
@@ -63,24 +57,21 @@ function StageIcon({ stage, state }) {
   }
   return <span className="h-2.5 w-2.5 rounded-full border-2 border-primary/25" />;
 }
-
 const FRIENDLY_LABELS = {
   ...STAGE_LABELS,
   processing: "Preparing audio",
   transcribing: "Transcribing audio",
   summarizing: "Analyzing & summarizing",
 };
-
+// Renders the checklist of stages plus a bar that fills as whole stages complete.
 export default function ProcessingStatus({ status, filename }) {
   const stages = getStageChecklist(status).filter((s) => s.stage !== "failed");
   const doneCount = stages.filter((s) => s.state === "done").length;
   const progressRatio = doneCount / STAGE_ORDER.length;
-
   return (
     <div className="rounded-2xl border border-glass-border bg-surface p-6 shadow-soft">
       <h2 className="text-base font-semibold text-ink">Processing your recording</h2>
       {filename && <p className="mt-0.5 truncate text-sm text-muted">{filename}</p>}
-
       <div className="mt-4 h-2 overflow-hidden rounded-full bg-elevated shadow-inset">
         <motion.div
           className="h-full rounded-full bg-primary"
@@ -89,7 +80,6 @@ export default function ProcessingStatus({ status, filename }) {
           transition={{ duration: 0.5, ease: "easeOut" }}
         />
       </div>
-
       <ul className="mt-5 space-y-3">
         {stages.map(({ stage, state }) => (
           <li key={stage} className="flex items-center gap-3">
