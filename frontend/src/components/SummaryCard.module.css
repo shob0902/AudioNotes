@@ -1,0 +1,47 @@
+/* TL;DR slab: black box, orange eyebrow tag, huge white title and large body copy. */
+.slab {
+  border: var(--rule);
+  background: var(--black);
+  color: var(--white);
+  padding: clamp(20px, 3.4vw, 40px);
+  animation: rise 200ms ease-out both;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.eyebrow {
+  padding: 5px 9px;
+  background: var(--orange);
+  color: var(--black);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.title {
+  margin-top: clamp(20px, 3vw, 32px);
+  font-size: clamp(44px, 8vw, 104px);
+  line-height: 0.85;
+}
+
+.text {
+  max-width: 62ch;
+  margin-top: clamp(16px, 2.4vw, 24px);
+  font-size: clamp(15px, 1.6vw, 18px);
+  line-height: 1.65;
+  color: var(--text-invert-muted);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}

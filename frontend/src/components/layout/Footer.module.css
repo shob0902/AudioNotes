@@ -1,0 +1,93 @@
+/* CTA footer: centered giant headline, big black pill button, then a ruled mono copyright/links row. */
+.footer {
+  margin-top: clamp(64px, 10vw, 140px);
+}
+
+.cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(24px, 4vw, 48px);
+  padding-bottom: clamp(40px, 6vw, 72px);
+  text-align: center;
+}
+
+.headline {
+  font-size: 14vw;
+  line-height: 0.85;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: clamp(16px, 2vw, 24px) clamp(28px, 4vw, 48px);
+  border: var(--rule);
+  border-radius: var(--pill);
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 1.3vw, 15px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  transition:
+    transform var(--transition),
+    background var(--transition),
+    color var(--transition);
+}
+
+.arrow {
+  width: 18px;
+  height: 18px;
+  transition: transform var(--transition);
+}
+
+.button:hover {
+  transform: scale(1.1);
+  background: var(--white);
+  color: var(--black);
+}
+
+.button:hover .arrow {
+  transform: rotate(45deg);
+}
+
+.bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  padding: 20px 0 28px;
+  border-top: var(--rule);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.copy {
+  color: var(--text-muted);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.links a {
+  display: inline-block;
+  padding-bottom: 2px;
+  border-bottom: 2px solid transparent;
+  transition:
+    border-color var(--transition),
+    transform var(--transition);
+}
+
+.links a:hover {
+  border-bottom-color: var(--black);
+  transform: translateX(4px);
+}

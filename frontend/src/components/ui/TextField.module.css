@@ -1,0 +1,41 @@
+/* Text field: mono label, 46px white pill input with a 2px rule, hard-shadow focus. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label,
+.hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: var(--text-muted);
+}
+
+.input {
+  width: 100%;
+  height: 46px;
+  padding: 0 20px;
+  border: var(--rule);
+  border-radius: var(--pill);
+  background: var(--white);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  transition: box-shadow var(--transition);
+}
+
+.input::placeholder {
+  color: var(--text-faint);
+  text-transform: uppercase;
+}
+
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-sm);
+}

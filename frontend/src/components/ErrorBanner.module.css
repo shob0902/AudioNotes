@@ -1,0 +1,57 @@
+/* Warning notice: black box with orange mono text and an orange pill retry button. */
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: var(--rule);
+  background: var(--black);
+  color: var(--orange);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  animation: rise 160ms ease-out both;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.message {
+  flex: 1;
+  min-width: 12ch;
+  overflow-wrap: anywhere;
+}
+
+.retry {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border: 2px solid var(--orange);
+  border-radius: var(--pill);
+  background: var(--orange);
+  color: var(--black);
+  font-size: 11px;
+  text-transform: uppercase;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    transform var(--transition);
+}
+
+.retry:hover {
+  background: var(--white);
+  border-color: var(--white);
+  transform: scale(1.06);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}

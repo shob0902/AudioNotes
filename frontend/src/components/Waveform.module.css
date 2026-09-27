@@ -1,0 +1,42 @@
+/* Waveform: square bars, orange once played and faint white ahead; they pulse while playing. */
+.wave {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: clamp(48px, 7vw, 72px);
+}
+
+.seekable {
+  cursor: pointer;
+}
+
+.bar,
+.barActive {
+  flex: 1;
+  min-width: 2px;
+  transform-origin: bottom;
+  transition: background var(--transition);
+}
+
+.bar {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.barActive {
+  background: var(--orange);
+}
+
+.seekable:hover .bar {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.playing .bar,
+.playing .barActive {
+  animation: pulse 800ms ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    transform: scaleY(0.6);
+  }
+}

@@ -1,0 +1,94 @@
+/* Flow diagram: stacked ruled blocks (white = synchronous, black = background) joined by arrows. */
+.diagram {
+  max-width: 460px;
+}
+
+.nodes {
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.node {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 14px;
+  width: 100%;
+  padding: 12px 16px;
+  border: var(--rule);
+}
+
+.sync {
+  background: var(--white);
+  color: var(--black);
+}
+
+.background {
+  background: var(--black);
+  color: var(--white);
+}
+
+.index {
+  grid-row: span 2;
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--orange);
+}
+
+.sync .index {
+  color: var(--text-faint);
+}
+
+.label {
+  font-family: var(--font-display);
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.detail {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  opacity: 0.7;
+}
+
+.arrow {
+  width: 20px;
+  height: 20px;
+  margin: 6px 0;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin-top: 18px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  border: var(--rule);
+}

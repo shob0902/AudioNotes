@@ -1,8 +1,9 @@
-// The architecture write-up page, presented as a scroll-driven gallery of numbered sections.
+// The architecture write-up page: a masthead, then numbered editorial sections with sticky titles.
 import ArchitectureDiagram from "../components/ArchitectureDiagram.jsx";
-import Card from "../components/ui/Card.jsx";
-import HorizontalScrollGallery from "../components/HorizontalScrollGallery.jsx";
-const GITHUB_REPO_URL = import.meta.env.VITE_GITHUB_REPO_URL || "https://github.com/<your-username>/audio-notes";
+import Button from "../components/ui/Button.jsx";
+import { ArrowIcon } from "../components/icons.jsx";
+import { GITHUB_REPO_URL } from "../utils/links.js";
+import styles from "./Architecture.module.css";
 const SECTIONS = [
   {
     number: 1,
@@ -13,7 +14,7 @@ const SECTIONS = [
     number: 2,
     title: "Upload-to-Transcript Flow",
     content: (
-      <ol className="list-decimal space-y-1.5 pl-5">
+      <ol>
         <li>Browser uploads audio via a multipart POST to FastAPI.</li>
         <li>
           FastAPI sanitizes the filename, validates size/format, and decodes it with ffmpeg to confirm it's real,
@@ -84,7 +85,7 @@ const SECTIONS = [
           targets 2+ minute recordings, chunking is mandatory rather than optional.
         </p>
         <p>The background task's transcription step:</p>
-        <ol className="list-decimal space-y-1.5 pl-5">
+        <ol>
           <li>Decodes the full audio with ffmpeg (using the original extension as a decoding hint).</li>
           <li>
             Splits it into sequential, non-overlapping WAV chunks of <code>GNANI_CHUNK_SECONDS</code> (default 30s).
@@ -108,15 +109,15 @@ const SECTIONS = [
     title: "Synchronous vs. Background Operations",
     content: (
       <>
-        <p className="font-medium text-ink">Synchronous (inside the HTTP request/response):</p>
-        <ul className="list-disc space-y-1 pl-5">
+        <p className={styles.label}>Synchronous (inside the HTTP request/response):</p>
+        <ul>
           <li>Upload validation (format, size, empty-file, real ffmpeg decode)</li>
           <li>Audio storage (object storage upload)</li>
           <li>Database record creation</li>
           <li>Background task scheduled (FastAPI <code>BackgroundTasks</code>)</li>
         </ul>
-        <p className="mt-3 font-medium text-ink">Background (in-process task, off the request path):</p>
-        <ul className="list-disc space-y-1 pl-5">
+        <p className={styles.label}>Background (in-process task, off the request path):</p>
+        <ul>
           <li>Audio chunking and transcription (Gnani)</li>
           <li>Retries with backoff for transient failures</li>
           <li>Summarization, including chunked map-reduce for long transcripts (Groq)</li>
@@ -201,7 +202,7 @@ const SECTIONS = [
     content: (
       <>
         <p>Four independently deployable pieces, all configured purely through environment variables:</p>
-        <ul className="list-disc space-y-1 pl-5">
+        <ul>
           <li>PostgreSQL — Neon (permanently-free tier), external to Render</li>
           <li>
             Backend API — Docker web service on Render's free plan, running Uvicorn; runs{" "}
@@ -219,7 +220,7 @@ const SECTIONS = [
     number: 11,
     title: "Future Improvements",
     content: (
-      <ul className="list-disc space-y-1 pl-5">
+      <ul>
         <li>
           Password reset and email verification — signup/login is intentionally minimal today (no email sent
           anywhere), which is fine for this project's scope but not for a real product.
@@ -243,33 +244,45 @@ const SECTIONS = [
     ),
   },
 ];
-// Renders the page header with the repo link, then hands the sections to the scrolling gallery.
+// Renders the masthead with the repo link, then each numbered section as a two-column row.
 export default function Architecture() {
   return (
-    <div className="space-y-6">
-      <Card variant="elevated-lg" className="p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-bold text-ink">System Architecture</h1>
-            <p className="mt-1 text-sm text-muted">
-              How Audio Notes turns an uploaded recording into a transcript and structured summary — scroll down to
-              move through each stage.
-            </p>
-          </div>
-          <a
-            href={GITHUB_REPO_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg border border-glass-border bg-elevated px-4 py-2 text-sm font-semibold text-ink shadow-soft transition-all duration-300 ease-bouncy hover:-translate-y-1 hover:bg-surface-hover hover:shadow-soft-hover"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
-              <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.09 3.29 9.4 7.86 10.93.57.1.78-.25.78-.55v-2c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.24 2.76.12 3.05.74.8 1.18 1.83 1.18 3.09 0 4.42-2.7 5.4-5.27 5.68.42.36.78 1.08.78 2.18v3.24c0 .3.21.66.79.55A10.52 10.52 0 0 0 23.5 12c0-6.27-5.23-11.5-11.5-11.5Z" />
-            </svg>
-            GitHub Repository
-          </a>
+    <div className="page">
+      <header className={styles.masthead}>
+        <p className={styles.eyebrow}>Docs {"//"} System architecture</p>
+        <h1 className={styles.headline}>
+          Under the
+          <br />
+          hood.
+        </h1>
+        <div className={styles.intro}>
+          <p className={styles.introText}>
+            How Audio Notes turns an uploaded recording into a transcript and structured summary — from the upload
+            request to the background pipeline, storage, failure handling and deployment.
+          </p>
+          <Button href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer">
+            GitHub repository
+            <ArrowIcon className="arrow" />
+          </Button>
         </div>
-      </Card>
-      <HorizontalScrollGallery items={SECTIONS} />
+      </header>
+      <nav aria-label="Sections" className={styles.toc}>
+        {SECTIONS.map((section) => (
+          <a key={section.number} href={`#section-${section.number}`} className={styles.tocLink}>
+            <span className={styles.tocNumber}>{String(section.number).padStart(2, "0")}</span>
+            {section.title}
+          </a>
+        ))}
+      </nav>
+      {SECTIONS.map((section) => (
+        <section key={section.number} id={`section-${section.number}`} className={styles.section}>
+          <div className={styles.sectionHead}>
+            <span className={styles.number}>{String(section.number).padStart(2, "0")}</span>
+            <h2 className={styles.sectionTitle}>{section.title}</h2>
+          </div>
+          <div className={styles.prose}>{section.content}</div>
+        </section>
+      ))}
     </div>
   );
 }

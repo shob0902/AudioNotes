@@ -1,0 +1,90 @@
+/* Auth layout: headline column plus a white form panel with a large hard shadow; side by side from 940px. */
+.layout {
+  display: grid;
+  gap: clamp(28px, 5vw, 64px);
+  padding-top: clamp(24px, 5vw, 72px);
+}
+
+.intro {
+  min-width: 0;
+}
+
+.eyebrow {
+  display: inline-block;
+  padding: 5px 9px;
+  background: var(--black);
+  color: var(--orange);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.headline {
+  margin-top: 20px;
+  font-size: clamp(56px, 11vw, 168px);
+  line-height: 0.85;
+}
+
+.lead {
+  max-width: 44ch;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: var(--rule);
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.panel {
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 480px;
+  padding: clamp(20px, 3.4vw, 36px);
+  border: var(--rule);
+  background: var(--white);
+  box-shadow: var(--shadow-lg);
+}
+
+.panel form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.footer {
+  padding-top: 16px;
+  border-top: var(--rule);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: var(--text-muted);
+}
+
+.footer a {
+  color: var(--black);
+  border-bottom: var(--rule);
+  transition: color var(--transition);
+}
+
+.footer a:hover {
+  color: var(--orange);
+  border-bottom-color: var(--black);
+  background: var(--black);
+}
+
+@media (min-width: 940px) {
+  .layout {
+    grid-template-columns: minmax(0, 1.4fr) minmax(360px, 1fr);
+    align-items: end;
+  }
+
+  .panel {
+    justify-self: end;
+  }
+}

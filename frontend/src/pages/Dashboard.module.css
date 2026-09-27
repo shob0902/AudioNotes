@@ -1,0 +1,146 @@
+/* Dashboard: giant page title, ruled stat grid, sticky filter bar with pill toggles, and the full-bleed black list. */
+.header {
+  padding: clamp(16px, 3vw, 40px) 0 clamp(20px, 3vw, 32px);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.faint {
+  color: var(--text-faint);
+}
+
+.title {
+  margin-top: 14px;
+  padding-bottom: clamp(14px, 2vw, 22px);
+  border-bottom: var(--rule);
+  font-size: clamp(52px, 12vw, 176px);
+  line-height: 0.85;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--rule-width);
+  margin-top: clamp(28px, 4vw, 48px);
+  border: var(--rule);
+  background: var(--black);
+}
+
+.filterBar {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 30;
+  margin: clamp(28px, 4vw, 48px) calc(var(--gutter) * -1) 0;
+  padding: 14px var(--gutter);
+  background: var(--bg);
+  border-bottom: var(--rule);
+}
+
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.search {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 16px;
+  border: var(--rule);
+  border-radius: var(--pill);
+  background: var(--white);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  transition:
+    background var(--transition),
+    color var(--transition);
+}
+
+.toggle:hover,
+.toggleActive {
+  background: var(--black);
+  color: var(--white);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--pill);
+  background: var(--orange);
+  color: var(--black);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.uploadButton {
+  height: 46px;
+}
+
+.summary {
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.sectionTitle {
+  margin-top: clamp(32px, 5vw, 56px);
+  padding-bottom: 12px;
+  border-bottom: var(--rule);
+  font-size: clamp(20px, 3vw, 32px);
+}
+
+.skeletons {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 24px auto 0;
+  padding: 0 var(--gutter);
+}
+
+.list {
+  list-style: none;
+  margin-top: clamp(20px, 3vw, 32px);
+  background: var(--black);
+  border-top: var(--rule);
+  border-bottom: var(--rule);
+}
+
+@media (min-width: 760px) {
+  .stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

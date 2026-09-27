@@ -1,19 +1,14 @@
-// The large placeholder shown when a page or list has nothing to display yet.
-import { motion } from "framer-motion";
-// Renders a floating icon with a title, optional description and optional call to action.
-export default function EmptyState({ icon, title, description, action }) {
+// The centered state block for empty lists, 404s and crashes: icon, big title, copy and actions.
+import styles from "./EmptyState.module.css";
+// Renders the icon, display title, optional description and optional action buttons.
+export default function EmptyState({ icon, eyebrow, title, description, action }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-primary/25 bg-surface px-6 py-14 text-center">
-      <motion.div
-        className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-light text-primary"
-        animate={{ y: [0, -4, 0] }}
-        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-      >
-        {icon}
-      </motion.div>
-      <h3 className="text-base font-semibold text-ink">{title}</h3>
-      {description && <p className="max-w-sm text-sm text-muted">{description}</p>}
-      {action && <div className="mt-2">{action}</div>}
+    <div className={styles.state}>
+      {icon && <span className={styles.icon}>{icon}</span>}
+      {eyebrow && <p className={styles.eyebrow}>{eyebrow}</p>}
+      <h2 className={styles.title}>{title}</h2>
+      {description && <p className={styles.description}>{description}</p>}
+      {action && <div className={styles.actions}>{action}</div>}
     </div>
   );
 }

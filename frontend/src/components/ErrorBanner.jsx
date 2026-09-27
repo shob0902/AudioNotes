@@ -1,31 +1,18 @@
-// The red inline alert used to show an error, with an optional retry button.
-import { motion } from "framer-motion";
-import Button from "./ui/Button.jsx";
-// Renders nothing without a message, otherwise slides in the warning and any retry action.
-export default function ErrorBanner({ message, onRetry }) {
+// The inline warning notice used to show an error, with an optional retry button.
+import { AlertIcon } from "./icons.jsx";
+import styles from "./ErrorBanner.module.css";
+// Renders nothing without a message, otherwise the black warning strip and any retry action.
+export default function ErrorBanner({ message, onRetry, retryLabel = "Try again" }) {
   if (!message) return null;
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -6 }}
-      animate={{ opacity: 1, y: 0 }}
-      role="alert"
-      className="flex items-start justify-between gap-4 rounded-xl bg-danger/10 px-4 py-3.5 text-sm text-danger"
-    >
-      <div className="flex gap-2.5">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-4 w-4 shrink-0">
-          <path
-            fillRule="evenodd"
-            d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 6Zm0 8a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-            clipRule="evenodd"
-          />
-        </svg>
-        <span className="pt-0.5">{message}</span>
-      </div>
+    <div role="alert" className={`${styles.banner} onDark`}>
+      <AlertIcon className={styles.icon} />
+      <span className={styles.message}>{message}</span>
       {onRetry && (
-        <Button variant="danger" size="sm" onClick={onRetry} className="shrink-0">
-          Try Again
-        </Button>
+        <button type="button" onClick={onRetry} className={styles.retry}>
+          {retryLabel}
+        </button>
       )}
-    </motion.div>
+    </div>
   );
 }

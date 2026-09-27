@@ -1,0 +1,181 @@
+/* Sticky header: brand square + wordmark, floating black pill nav, underlined CTA link, offline strip. */
+.offline {
+  padding: 8px var(--gutter);
+  background: var(--black);
+  color: var(--orange);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: var(--header-height);
+  background: var(--bg);
+}
+
+.inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 100%;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.brandMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: var(--black);
+  color: var(--orange);
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1;
+  transition: transform var(--transition);
+}
+
+.brand:hover .brandMark {
+  transform: scale(1.1);
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: 19px;
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--pill);
+  background: var(--black);
+  box-shadow: var(--shadow-nav);
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 11px;
+  border-radius: var(--pill);
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  transition:
+    background var(--transition),
+    color var(--transition);
+}
+
+.navLink:hover {
+  background: var(--white);
+  color: var(--black);
+}
+
+.navActive,
+.navActive:hover {
+  background: var(--orange);
+  color: var(--black);
+}
+
+.navIcon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.navLabel {
+  display: none;
+}
+
+.cta {
+  display: none;
+  flex-shrink: 0;
+  padding-bottom: 2px;
+  border-bottom: var(--rule);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  transition: transform var(--transition);
+}
+
+.cta:hover {
+  transform: translateX(4px);
+}
+
+/* <560: icon-only pills. 560–939: text pills in flow. ≥940: centered nav + CTA. ≥1200: icons return. */
+@media (max-width: 419px) {
+  .wordmark {
+    display: none;
+  }
+}
+
+@media (min-width: 560px) {
+  .navLabel {
+    display: inline;
+  }
+
+  .navIcon {
+    display: none;
+  }
+
+  .navLink {
+    padding: 0 10px;
+    font-size: 11px;
+  }
+}
+
+@media (min-width: 560px) and (max-width: 699px) {
+  .wordmark {
+    display: none;
+  }
+}
+
+@media (min-width: 940px) {
+  .nav {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .navLink {
+    padding: 0 14px;
+    font-size: 12px;
+  }
+
+  .cta {
+    display: inline-block;
+  }
+}
+
+@media (min-width: 1200px) {
+  .navIcon {
+    display: block;
+  }
+}

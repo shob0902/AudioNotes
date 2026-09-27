@@ -1,0 +1,45 @@
+/* Tab row: white outline pills that turn black when hovered or selected, with orange count badges. */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 18px;
+  border: var(--rule);
+  border-radius: var(--pill);
+  background: var(--white);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  transition:
+    background var(--transition),
+    color var(--transition);
+}
+
+.tab:hover,
+.active {
+  background: var(--black);
+  color: var(--white);
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--pill);
+  background: var(--orange);
+  color: var(--black);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}

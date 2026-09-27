@@ -1,0 +1,146 @@
+/* Settings page: giant title over a rule, then a white account panel and a black about panel side by side. */
+.header {
+  padding: clamp(16px, 3vw, 40px) 0 clamp(20px, 3vw, 32px);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.title {
+  margin-top: 14px;
+  padding-bottom: clamp(14px, 2vw, 22px);
+  border-bottom: var(--rule);
+  font-size: clamp(52px, 12vw, 176px);
+  line-height: 0.85;
+}
+
+.grid {
+  display: grid;
+  gap: clamp(20px, 3vw, 32px);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  min-width: 0;
+  padding: clamp(20px, 3vw, 32px);
+  border: var(--rule);
+  background: var(--white);
+}
+
+.invert {
+  background: var(--black);
+  color: var(--white);
+}
+
+.panelTitle {
+  align-self: stretch;
+  padding-bottom: 12px;
+  border-bottom: var(--rule);
+  font-size: clamp(24px, 3.4vw, 40px);
+}
+
+.invert .panelTitle {
+  border-bottom-color: rgba(255, 255, 255, 0.35);
+}
+
+.text {
+  max-width: 56ch;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-invert-muted);
+}
+
+.facts {
+  align-self: stretch;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.18);
+}
+
+.invert .fact {
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+}
+
+.factLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: var(--text-faint);
+}
+
+.invert .factLabel {
+  color: var(--text-invert-muted);
+}
+
+.factValue {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.link {
+  border-bottom: 2px solid var(--orange);
+  transition: color var(--transition);
+}
+
+.link:hover {
+  color: var(--orange);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 26px;
+  border: 2px solid var(--orange);
+  border-radius: var(--pill);
+  background: var(--orange);
+  color: var(--black);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    transform var(--transition);
+}
+
+.cta:hover {
+  background: var(--white);
+  border-color: var(--white);
+  transform: scale(1.06);
+}
+
+.ctaArrow {
+  width: 15px;
+  height: 15px;
+  transition: transform var(--transition);
+}
+
+.cta:hover .ctaArrow {
+  transform: rotate(45deg);
+}
+
+@media (min-width: 760px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

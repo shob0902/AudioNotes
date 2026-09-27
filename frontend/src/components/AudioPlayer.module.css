@@ -1,0 +1,157 @@
+/* Audio player: black slab with an orange waveform, a round orange play button and mono pill extras. */
+.player {
+  border: var(--rule);
+  background: var(--black);
+  color: var(--white);
+  padding: clamp(16px, 2.6vw, 28px);
+}
+
+.meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.eyebrow {
+  color: var(--orange);
+}
+
+.clock {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.clockTotal {
+  color: var(--text-invert-muted);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.transport {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.skip {
+  display: inline-flex;
+  padding: 8px;
+  color: var(--text-invert-muted);
+  transition:
+    color var(--transition),
+    transform var(--transition);
+}
+
+.skip svg {
+  width: 20px;
+  height: 20px;
+}
+
+.skip:hover {
+  color: var(--orange);
+  transform: scale(1.1);
+}
+
+.play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--pill);
+  background: var(--orange);
+  color: var(--black);
+  transition:
+    background var(--transition),
+    transform var(--transition);
+}
+
+.play svg {
+  width: 22px;
+  height: 22px;
+}
+
+.playIcon {
+  transform: translateX(2px);
+}
+
+.play:hover {
+  background: var(--white);
+  transform: scale(1.1);
+}
+
+.play:active {
+  transform: scale(0.94);
+}
+
+.extras {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: var(--pill);
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition:
+    border-color var(--transition),
+    color var(--transition);
+}
+
+.chip:hover,
+.chipActive {
+  border-color: var(--orange);
+  color: var(--orange);
+}
+
+.chipIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.volumeWrap {
+  position: relative;
+}
+
+.volumePanel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 5;
+  padding: 12px 14px;
+  border: var(--rule);
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+
+.range {
+  width: 120px;
+  accent-color: var(--black);
+}

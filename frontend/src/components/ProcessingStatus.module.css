@@ -1,0 +1,165 @@
+/* Processing tracker: white panel, segmented black progress bar, numbered stage rows with square markers. */
+.panel {
+  border: var(--rule);
+  background: var(--white);
+  padding: clamp(18px, 2.6vw, 28px);
+  box-shadow: var(--shadow);
+  animation: rise 200ms ease-out both;
+}
+
+.head {
+  padding-bottom: 16px;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: var(--text-muted);
+}
+
+.liveDot {
+  width: 9px;
+  height: 9px;
+  background: var(--orange);
+  animation: blink 1s steps(2, start) infinite;
+}
+
+.title {
+  margin-top: 10px;
+  font-size: clamp(32px, 5vw, 56px);
+}
+
+.filename {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.track {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  height: 18px;
+  padding: 3px;
+  border: var(--rule);
+}
+
+.segment,
+.segmentDone {
+  transition: background 400ms ease-out;
+}
+
+.segmentDone {
+  background: var(--black);
+}
+
+.stages {
+  list-style: none;
+  margin-top: 20px;
+}
+
+.stage {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.18);
+}
+
+.stageIndex {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.stageLabel {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.upcoming .stageLabel {
+  color: var(--text-faint);
+}
+
+.active .stageIndex {
+  color: var(--orange);
+}
+
+.done .stageIndex {
+  color: var(--black);
+}
+
+.marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: var(--rule);
+}
+
+.markerDone {
+  background: var(--black);
+  color: var(--orange);
+}
+
+.markerActive {
+  background: var(--orange);
+  animation: blink 1s steps(2, start) infinite;
+}
+
+.bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 20px;
+}
+
+.bars span {
+  width: 3px;
+  height: 100%;
+  background: var(--black);
+  transform-origin: bottom;
+  animation: bounce 900ms ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}

@@ -1,0 +1,11 @@
+/* App shell: the main region grows so the footer is pushed to the bottom of short pages. */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.main > :global(.fadeIn) {
+  flex: 1;
+}

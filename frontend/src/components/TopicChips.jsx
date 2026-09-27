@@ -1,29 +1,22 @@
-// The card listing a note's topics as small rounded chips.
-import { motion } from "framer-motion";
-import Card from "./ui/Card.jsx";
+// The section listing a note's topics as outline pill tags.
+import SectionBlock from "./SectionBlock.jsx";
 import { EmptyStateSmall } from "./EmptyStateSmall.jsx";
-// Pops each chip in one after another, or shows the empty line when there are no topics.
+import styles from "./TopicChips.module.css";
+// Renders each topic as a pill tag, or the empty line when there are no topics.
 export default function TopicChips({ topics }) {
   return (
-    <Card variant="elevated" className="p-6">
-      <h2 className="text-base font-bold text-ink">Topics</h2>
+    <SectionBlock title="Topics" eyebrow={topics?.length ? `${topics.length} tags` : undefined}>
       {topics && topics.length > 0 ? (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <ul className={styles.chips}>
           {topics.map((topic, index) => (
-            <motion.span
-              key={topic}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.06, duration: 0.25, ease: "easeOut" }}
-              className="rounded-full bg-secondary/10 px-3.5 py-1.5 text-sm font-medium text-secondary"
-            >
+            <li key={topic} className={styles.chip} style={{ animationDelay: `${index * 40}ms` }}>
               {topic}
-            </motion.span>
+            </li>
           ))}
-        </div>
+        </ul>
       ) : (
         <EmptyStateSmall text="No topics identified." />
       )}
-    </Card>
+    </SectionBlock>
   );
 }

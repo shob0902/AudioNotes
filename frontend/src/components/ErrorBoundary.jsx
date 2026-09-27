@@ -1,7 +1,8 @@
 // Catches render crashes in the page content and shows a recoverable message instead of a blank area.
 import { Component } from "react";
 import Button from "./ui/Button.jsx";
-import Card from "./ui/Card.jsx";
+import EmptyState from "./ui/EmptyState.jsx";
+import { AlertIcon } from "./icons.jsx";
 export default class ErrorBoundary extends Component {
   // Starts with no error recorded.
   constructor(props) {
@@ -16,19 +17,26 @@ export default class ErrorBoundary extends Component {
   componentDidCatch(error, info) {
     console.error("Unhandled error in page content:", error, info.componentStack);
   }
-  // Shows the fallback card once something has thrown, otherwise the children as normal.
+  // Shows the fallback state once something has thrown, otherwise the children as normal.
   render() {
     if (this.state.error) {
       return (
-        <Card variant="elevated" className="p-6">
-          <p className="text-sm font-semibold text-ink">Something went wrong loading this page.</p>
-          <p className="mt-1 text-sm text-muted">
-            {import.meta.env.DEV ? this.state.error.message : "Please try reloading the page."}
-          </p>
-          <Button variant="secondary" size="sm" className="mt-3" onClick={() => window.location.reload()}>
-            Reload page
-          </Button>
-        </Card>
+        <div className="page">
+          <EmptyState
+            icon={<AlertIcon />}
+            eyebrow="Error // Render crash"
+            title="Something broke"
+            description={import.meta.env.DEV ? this.state.error.message : "Please try reloading the page."}
+            action={
+              <>
+                <Button onClick={() => window.location.reload()}>Reload page</Button>
+                <Button variant="secondary" href="/">
+                  Go home
+                </Button>
+              </>
+            }
+          />
+        </div>
       );
     }
     return this.props.children;

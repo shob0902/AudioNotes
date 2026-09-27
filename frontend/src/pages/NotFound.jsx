@@ -1,22 +1,23 @@
 // The 404 page shown for any route that doesn't match.
-import { Link } from "react-router-dom";
-import { MicIcon } from "../components/icons.jsx";
-import EmptyState from "../components/ui/EmptyState.jsx";
 import Button from "../components/ui/Button.jsx";
-// Renders the not-found message with a link back to the home page.
+import EmptyState from "../components/ui/EmptyState.jsx";
+import { MicIcon } from "../components/icons.jsx";
+// Renders the not-found state with links back home and to the docs.
 export default function NotFound() {
   return (
-    <div className="py-10">
+    <div className="page">
       <EmptyState
-        icon={<MicIcon className="h-6 w-6" />}
+        icon={<MicIcon />}
+        eyebrow="404 // Dead air"
         title="Page not found"
-        description="The page you're looking for doesn't exist."
+        description="The page you're looking for doesn't exist — or it was moved."
         action={
-          <Link to="/">
-            <Button variant="primary" size="sm">
-              Back to home
+          <>
+            <Button to="/">Back to home</Button>
+            <Button to="/architecture" variant="secondary">
+              Read the docs
             </Button>
-          </Link>
+          </>
         }
       />
     </div>

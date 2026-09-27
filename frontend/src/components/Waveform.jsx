@@ -1,45 +1,43 @@
-// The clickable waveform strip under the audio player, showing playback position.
-import { motion, useReducedMotion } from "framer-motion";
+// The clickable waveform strip in the audio player, showing playback position.
 import { generateWaveformBars } from "../utils/waveform.js";
-// Draws the bars, highlights the played portion, and reports the clicked position back for seeking.
+import styles from "./Waveform.module.css";
+// Draws the bars, highlights the played portion, and reports clicks/arrow keys back for seeking.
 export default function Waveform({ seed, progress, isPlaying, onSeek }) {
-  const reduceMotion = useReducedMotion();
   const bars = generateWaveformBars(seed);
-  const activeCount = Math.round(bars.length * Math.min(Math.max(progress, 0), 1));
+  const clamped = Math.min(Math.max(progress, 0), 1);
+  const activeCount = Math.round(bars.length * clamped);
   const handleClick = (event) => {
     if (!onSeek) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const ratio = (event.clientX - rect.left) / rect.width;
     onSeek(Math.min(Math.max(ratio, 0), 1));
   };
+  const handleKeyDown = (event) => {
+    if (!onSeek) return;
+    if (event.key === "ArrowRight") onSeek(Math.min(clamped + 0.05, 1));
+    else if (event.key === "ArrowLeft") onSeek(Math.max(clamped - 0.05, 0));
+    else return;
+    event.preventDefault();
+  };
   return (
     <div
-      className={`flex h-10 items-end gap-[3px] ${onSeek ? "cursor-pointer" : ""}`}
+      className={`${styles.wave} ${onSeek ? styles.seekable : ""} ${isPlaying ? styles.playing : ""}`}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      tabIndex={onSeek ? 0 : undefined}
       role={onSeek ? "slider" : undefined}
       aria-label={onSeek ? "Seek audio position" : undefined}
-      aria-valuenow={onSeek ? Math.round(progress * 100) : undefined}
+      aria-valuemin={onSeek ? 0 : undefined}
+      aria-valuemax={onSeek ? 100 : undefined}
+      aria-valuenow={onSeek ? Math.round(clamped * 100) : undefined}
     >
-      {bars.map((height, i) => {
-        const isActive = i < activeCount;
-        return (
-          <motion.span
-            key={i}
-            className={`w-1 rounded-full ${isActive ? "bg-primary" : "bg-primary/20"}`}
-            style={{ height: `${height * 100}%` }}
-            animate={
-              isPlaying && !reduceMotion
-                ? { scaleY: [1, 0.55 + height * 0.4, 1] }
-                : { scaleY: 1 }
-            }
-            transition={
-              isPlaying && !reduceMotion
-                ? { duration: 0.7 + (i % 5) * 0.08, repeat: Infinity, ease: "easeInOut" }
-                : { duration: 0.2 }
-            }
-          />
-        );
-      })}
+      {bars.map((height, i) => (
+        <span
+          key={i}
+          className={i < activeCount ? styles.barActive : styles.bar}
+          style={{ height: `${height * 100}%`, animationDelay: `${(i % 7) * 90}ms` }}
+        />
+      ))}
     </div>
   );
 }

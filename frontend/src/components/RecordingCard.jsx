@@ -1,60 +1,52 @@
-// One recording row on the dashboard, with its status badge, favorite star and delete button.
-import { motion } from "framer-motion";
+// One recording row in the dashboard's editorial index list, with status, favorite and delete controls.
 import { Link } from "react-router-dom";
-import Card from "./ui/Card.jsx";
-import { MicIcon, StarIcon, TrashIcon } from "./icons.jsx";
+import IconButton from "./ui/IconButton.jsx";
+import StatusTag from "./StatusTag.jsx";
+import { ArrowIcon, StarIcon, TrashIcon } from "./icons.jsx";
 import { formatDate, formatDuration } from "../utils/format.js";
-import { STAGE_LABELS, statusBadgeClasses } from "../utils/status.js";
-// Links the card body through to the note detail page and keeps the two action buttons separate.
-export default function RecordingCard({ note, isFavorite, onToggleFavorite, onRequestDelete, delayMs = 0 }) {
+import styles from "./RecordingCard.module.css";
+// The title link stretches over the whole row, while the two action buttons sit above it.
+export default function RecordingCard({ note, index, isFavorite, onToggleFavorite, onRequestDelete, delayMs = 0 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: delayMs / 1000, ease: "easeOut" }}
-    >
-      <Card variant="elevated" className="p-4">
-        <div className="flex items-start gap-2.5 sm:gap-4">
-          <Link to={`/notes/${note.id}`} className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-4">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-light text-primary sm:h-11 sm:w-11">
-              <MicIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-semibold text-ink">{note.title}</p>
-              <p className="truncate text-sm text-muted">{note.original_filename}</p>
-              <p className="mt-0.5 truncate text-xs text-muted">
-                {formatDate(note.created_at)} · {formatDuration(note.duration)}
-              </p>
-            </div>
+    <li className={styles.row} style={{ animationDelay: `${delayMs}ms` }}>
+      <span className={styles.index}>{index ? String(index).padStart(2, "0") : "—"}</span>
+      <div className={styles.body}>
+        <h3 className={styles.title}>
+          <Link to={`/notes/${note.id}`} className={styles.link}>
+            {note.title}
           </Link>
-          <div className="flex shrink-0 items-center gap-0.5">
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.85 }}
-              onClick={() => onToggleFavorite(note.id)}
-              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-              aria-pressed={isFavorite}
-              className={`rounded-lg p-2 transition-colors ${isFavorite ? "text-warning" : "text-muted hover:text-ink"}`}
-            >
-              <StarIcon className="h-4 w-4" fill={isFavorite ? "currentColor" : "none"} />
-            </motion.button>
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.85 }}
-              onClick={() => onRequestDelete(note)}
-              aria-label="Delete recording"
-              className="rounded-lg p-2 text-muted transition-colors hover:text-danger"
-            >
-              <TrashIcon className="h-4 w-4" />
-            </motion.button>
-          </div>
-        </div>
-        <Link to={`/notes/${note.id}`}>
-          <span className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClasses(note.status)}`}>
-            {STAGE_LABELS[note.status] || note.status}
+        </h3>
+        <p className={styles.meta}>
+          <span className={styles.filename}>{note.original_filename}</span>
+          <span className={styles.sep} aria-hidden="true">
+            {"//"}
           </span>
-        </Link>
-      </Card>
-    </motion.div>
+          <span>{formatDate(note.created_at)}</span>
+          <span className={styles.sep} aria-hidden="true">
+            {"//"}
+          </span>
+          <span>{formatDuration(note.duration)}</span>
+        </p>
+        <div className={styles.tags}>
+          <StatusTag status={note.status} onDark />
+          {isFavorite && <span className={styles.favTag}>★ Favorite</span>}
+        </div>
+      </div>
+      <div className={styles.side}>
+        <div className={styles.actions}>
+          <IconButton
+            label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            pressed={isFavorite}
+            onClick={() => onToggleFavorite(note.id)}
+          >
+            <StarIcon />
+          </IconButton>
+          <IconButton label="Delete recording" onClick={() => onRequestDelete(note)}>
+            <TrashIcon />
+          </IconButton>
+        </div>
+        <ArrowIcon className={styles.arrow} />
+      </div>
+    </li>
   );
 }

@@ -1,0 +1,23 @@
+/* Transcript box: capped-height scroll area with a thin black scrollbar and roomy body copy. */
+.scroll {
+  max-height: 28rem;
+  overflow-y: auto;
+  padding-right: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--black) transparent;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--black);
+}
+
+.text {
+  max-width: 68ch;
+  white-space: pre-wrap;
+  font-size: 15px;
+  line-height: 1.8;
+}

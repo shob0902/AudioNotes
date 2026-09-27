@@ -21,18 +21,18 @@ export const TERMINAL_STATUSES = new Set(["completed", "failed"]);
 export function isTerminalStatus(status) {
   return TERMINAL_STATUSES.has(status);
 }
-// Picks the badge colour classes that go with a given status.
-export function statusBadgeClasses(status) {
+// Groups a status into the tone its badge is drawn in: done, failed, waiting or active.
+export function statusTone(status) {
   switch (status) {
     case "completed":
-      return "bg-success/15 text-success";
+      return "done";
     case "failed":
-      return "bg-danger/15 text-danger";
+      return "failed";
     case "uploaded":
     case "queued":
-      return "bg-elevated text-muted";
+      return "waiting";
     default:
-      return "bg-primary-light text-primary";
+      return "active";
   }
 }
 // Marks every stage as done, active or upcoming so the progress checklist can render itself.

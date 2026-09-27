@@ -1,13 +1,13 @@
-// The drag-and-drop upload card that picks an audio file and sends it to the backend.
+// The drag-and-drop upload slab that picks an audio file and sends it to the backend.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import Button from "./ui/Button.jsx";
-import Card from "./ui/Card.jsx";
 import AnimatedCheck from "./ui/AnimatedCheck.jsx";
-import { UploadCloudIcon } from "./icons.jsx";
+import Spinner from "./ui/Spinner.jsx";
+import { AlertIcon, ArrowIcon, UploadCloudIcon } from "./icons.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import { ApiError, uploadNote } from "../services/api.js";
 import { formatDuration, formatFileSize } from "../utils/format.js";
+import styles from "./UploadCard.module.css";
 const SUPPORTED_FORMATS = ["MP3", "WAV", "M4A", "AAC", "OGG", "FLAC"];
 const MAX_FILE_SIZE_MB = Number(import.meta.env.VITE_MAX_UPLOAD_SIZE_MB || 200);
 const RECOMMENDED_MIN_MINUTES = 2;
@@ -83,129 +83,89 @@ export default function UploadCard({ onUploaded, focusRequestId, id }) {
     setError(null);
     if (inputRef.current) inputRef.current.value = "";
   };
+  const isShort = duration !== null && duration < RECOMMENDED_MIN_MINUTES * 60;
   return (
-    <Card id={id} ref={cardRef} variant="elevated-lg" className="p-6 sm:p-10">
-      <AnimatePresence>
-        {!selectedFile ? (
-          <motion.label
-            key="dropzone"
-            htmlFor="audio-upload-input"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1, scale: isDragging ? 1.02 : 1 }}
-            exit={{ opacity: 0 }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDragging(true);
-            }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={handleDrop}
-            className={`flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-2 border-dashed px-6 py-14 text-center transition-colors duration-200 ${
-              isDragging ? "border-primary bg-primary-light shadow-soft" : "border-primary/20 hover:border-primary/40 hover:bg-primary-light/40"
-            }`}
-          >
-            <motion.span
-              className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-light text-primary"
-              animate={
-                isDragging
-                  ? { scale: 1.15 }
-                  : { y: [0, -5, 0] }
-              }
-              transition={isDragging ? { duration: 0.2 } : { duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <UploadCloudIcon className="h-8 w-8" />
-            </motion.span>
-            <h2 className="text-lg font-bold text-ink">Upload your recording</h2>
-            <p className="text-sm text-muted">
-              Drag &amp; drop your audio file here, or choose one from your device
-            </p>
-            <span className="pointer-events-none mt-1 inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-soft">
-              Choose File
-            </span>
-            <p className="mt-1 text-xs text-muted">
-              {SUPPORTED_FORMATS.join(" · ")} · Recommended {RECOMMENDED_MIN_MINUTES}+ min · Up to {MAX_FILE_SIZE_MB} MB
-            </p>
-            <input
-              id="audio-upload-input"
-              ref={inputRef}
-              type="file"
-              accept=".mp3,.wav,.m4a,.aac,.ogg,.flac,audio/*"
-              className="sr-only"
-              onChange={(e) => handleFile(e.target.files?.[0])}
-            />
-          </motion.label>
-        ) : (
-          <motion.div
-            key="selected"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25 }}
-          >
-            <div className="flex items-start justify-between gap-4 rounded-xl border border-glass-border bg-elevated px-4 py-3.5 shadow-inset">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-ink">{selectedFile.name}</p>
-                <p className="text-xs text-muted">
-                  {formatFileSize(selectedFile.size)}
-                  {duration !== null ? ` · ${formatDuration(duration)}` : ""}
-                </p>
-                {duration !== null && duration < RECOMMENDED_MIN_MINUTES * 60 && (
-                  <p className="mt-1 text-xs text-warning">
-                    Shorter than the recommended {RECOMMENDED_MIN_MINUTES} minutes — it'll still process normally.
-                  </p>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={reset}
-                disabled={isUploading}
-                className="shrink-0 text-xs font-medium text-muted hover:text-ink disabled:opacity-50"
-              >
-                Remove
-              </button>
-            </div>
-            <div className="mt-4 flex items-center gap-3">
-              <Button variant="primary" size="md" onClick={handleUpload} disabled={isUploading || justUploaded}>
-                <AnimatePresence initial={false}>
-                  {justUploaded ? (
-                    <motion.span key="done" className="flex items-center gap-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                      <AnimatedCheck size={15} />
-                      Uploaded
-                    </motion.span>
-                  ) : isUploading ? (
-                    <motion.span key="loading" className="flex items-center gap-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                      <motion.svg
-                        className="h-4 w-4"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-                      >
-                        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" opacity="0.3" />
-                        <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                      </motion.svg>
-                      Uploading...
-                    </motion.span>
-                  ) : (
-                    <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                      Upload and process
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      {error && (
-        <motion.div
-          role="alert"
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-4 rounded-xl bg-danger/10 px-4 py-2.5 text-sm text-danger"
+    <section id={id} ref={cardRef} className={styles.card} aria-label="Upload a recording">
+      {!selectedFile ? (
+        <label
+          htmlFor="audio-upload-input"
+          className={`${styles.dropzone} ${isDragging ? styles.dragging : ""}`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
         >
-          {error}
-        </motion.div>
+          <span className={styles.eyebrow}>Upload // New recording</span>
+          <span className={styles.headline}>{isDragging ? "Let go." : "Drop audio here"}</span>
+          <span className={styles.copy}>
+            Drag &amp; drop a meeting, lecture or voice memo — or pick one from your device. We'll transcribe it and
+            pull out the key points.
+          </span>
+          <span className={styles.row}>
+            <span className={styles.choose}>
+              <UploadCloudIcon className={styles.chooseIcon} />
+              Choose file
+            </span>
+            <span className={styles.formats}>
+              {SUPPORTED_FORMATS.join(" · ")}
+              <span className={styles.faint}>
+                {` // ${RECOMMENDED_MIN_MINUTES}+ min recommended // up to ${MAX_FILE_SIZE_MB} MB`}
+              </span>
+            </span>
+          </span>
+          <input
+            id="audio-upload-input"
+            ref={inputRef}
+            type="file"
+            accept=".mp3,.wav,.m4a,.aac,.ogg,.flac,audio/*"
+            className="srOnly"
+            onChange={(e) => handleFile(e.target.files?.[0])}
+          />
+        </label>
+      ) : (
+        <div className={styles.selected}>
+          <span className={styles.eyebrow}>Ready // 1 file</span>
+          <p className={styles.filename}>{selectedFile.name}</p>
+          <div className={styles.chips}>
+            <span className={styles.chip}>{formatFileSize(selectedFile.size)}</span>
+            {duration !== null && <span className={styles.chip}>{formatDuration(duration)}</span>}
+          </div>
+          {isShort && (
+            <p className={styles.notice}>
+              <AlertIcon className={styles.noticeIcon} />
+              Shorter than the recommended {RECOMMENDED_MIN_MINUTES} minutes — it'll still process normally.
+            </p>
+          )}
+          <div className={styles.actions}>
+            <Button onClick={handleUpload} disabled={isUploading || justUploaded} size="lg">
+              {justUploaded ? (
+                <>
+                  <AnimatedCheck size={15} />
+                  Uploaded
+                </>
+              ) : isUploading ? (
+                <Spinner label="Uploading…" />
+              ) : (
+                <>
+                  Upload and process
+                  <ArrowIcon className="arrow" />
+                </>
+              )}
+            </Button>
+            <Button variant="secondary" size="lg" onClick={reset} disabled={isUploading}>
+              Remove
+            </Button>
+          </div>
+        </div>
       )}
-    </Card>
+      {error && (
+        <p role="alert" className={styles.error}>
+          <AlertIcon className={styles.noticeIcon} />
+          {error}
+        </p>
+      )}
+    </section>
   );
 }

@@ -1,5 +1,6 @@
-// The small inline "nothing here" line used inside a card section.
-// Renders the given text as muted helper copy.
+// The small inline "nothing here" line used inside a section.
+import styles from "./SectionBlock.module.css";
+// Renders the given text as a muted mono note.
 export function EmptyStateSmall({ text }) {
-  return <p className="mt-3 text-sm text-muted">{text}</p>;
+  return <p className={styles.empty}>{text}</p>;
 }

@@ -1,0 +1,62 @@
+/* Round 38px icon buttons: white pill with a rule, orange when active, black on hover. */
+.iconButton {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border: var(--rule);
+  border-radius: var(--pill);
+  background: var(--white);
+  color: var(--black);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    transform var(--transition);
+}
+
+.iconButton span {
+  display: flex;
+}
+
+.iconButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+.iconButton:hover {
+  background: var(--black);
+  color: var(--orange);
+  transform: scale(1.1);
+}
+
+.iconButton:active {
+  transform: scale(0.94);
+}
+
+.active {
+  background: var(--orange);
+}
+
+.active svg {
+  fill: currentColor;
+}
+
+.pop {
+  animation: pop 260ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.28);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

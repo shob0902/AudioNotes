@@ -1,62 +1,65 @@
 // The settings page showing the signed-in account, a log-out button and some app information.
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button.jsx";
-import Card from "../components/ui/Card.jsx";
-import { SettingsIcon } from "../components/icons.jsx";
+import { ArrowIcon } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-const GITHUB_REPO_URL = import.meta.env.VITE_GITHUB_REPO_URL || "https://github.com/<your-username>/audio-notes";
-// Renders the account card and the about card, and sends the user home after logging out.
+import { GITHUB_REPO_URL } from "../utils/links.js";
+import styles from "./Settings.module.css";
+// Renders the account panel and the about panel, and sends the user home after logging out.
 export default function Settings() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-ink">
-          <SettingsIcon className="h-5 w-5 text-primary" />
-          Settings
-        </h1>
-        <p className="mt-1 text-sm text-muted">Account and app information.</p>
+    <div className="page">
+      <header className={styles.header}>
+        <p className={styles.eyebrow}>Settings {"//"} Account</p>
+        <h1 className={styles.title}>Settings.</h1>
+      </header>
+      <div className={styles.grid}>
+        <section className={styles.panel}>
+          <h2 className={styles.panelTitle}>Account</h2>
+          <dl className={styles.facts}>
+            <div className={styles.fact}>
+              <dt className={styles.factLabel}>Signed in as</dt>
+              <dd className={styles.factValue}>{user?.email}</dd>
+            </div>
+            <div className={styles.fact}>
+              <dt className={styles.factLabel}>Stored in this browser</dt>
+              <dd className={styles.factValue}>Favorites and checked-off action items</dd>
+            </div>
+          </dl>
+          <Button
+            variant="primary"
+            onClick={() => {
+              logout();
+              navigate("/");
+            }}
+          >
+            Log out
+          </Button>
+        </section>
+        <section className={`${styles.panel} ${styles.invert} onDark`}>
+          <h2 className={styles.panelTitle}>About</h2>
+          <p className={styles.text}>
+            Audio Notes uploads your audio, transcribes it with Gnani Speech-to-Text, and turns the transcript into a
+            structured summary with Groq.
+          </p>
+          <dl className={styles.facts}>
+            <div className={styles.fact}>
+              <dt className={styles.factLabel}>Source code</dt>
+              <dd className={styles.factValue}>
+                <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" className={styles.link}>
+                  {GITHUB_REPO_URL}
+                </a>
+              </dd>
+            </div>
+          </dl>
+          <Link to="/architecture" className={styles.cta}>
+            How it works
+            <ArrowIcon className={styles.ctaArrow} />
+          </Link>
+        </section>
       </div>
-      <Card variant="elevated" className="p-6">
-        <p className="text-sm font-semibold text-ink">Account</p>
-        <p className="mt-1 text-sm text-muted">{user?.email}</p>
-        <Button
-          variant="secondary"
-          size="sm"
-          className="mt-3"
-          onClick={() => {
-            logout();
-            navigate("/");
-          }}
-        >
-          Log out
-        </Button>
-      </Card>
-      <Card variant="elevated" className="divide-y divide-black/5 p-6">
-        <div className="pb-4">
-          <p className="text-sm font-semibold text-ink">Audio Notes Platform</p>
-          <p className="mt-1 text-sm text-muted">
-            Upload audio, get an AI transcript via Gnani Speech-to-Text, and a structured summary via Groq.
-          </p>
-        </div>
-        <div className="py-4">
-          <p className="text-sm font-semibold text-ink">Source code</p>
-          <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-sm text-primary hover:underline">
-            {GITHUB_REPO_URL}
-          </a>
-        </div>
-        <div className="pt-4">
-          <p className="text-sm font-semibold text-ink">How it works</p>
-          <p className="mt-1 text-sm text-muted">
-            See the{" "}
-            <Link to="/architecture" className="text-primary hover:underline">
-              architecture page
-            </Link>{" "}
-            for the full processing pipeline.
-          </p>
-        </div>
-      </Card>
     </div>
   );
 }

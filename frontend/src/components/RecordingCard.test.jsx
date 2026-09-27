@@ -1,5 +1,5 @@
 // Tests for the RecordingCard: its content, its link, and its favorite and delete buttons.
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import RecordingCard from "./RecordingCard.jsx";
@@ -43,13 +43,13 @@ describe("RecordingCard", () => {
   it("calls onToggleFavorite when the star button is clicked, without navigating", () => {
     const onToggleFavorite = vi.fn();
     renderCard(baseNote, { onToggleFavorite });
-    screen.getByRole("button", { name: /add to favorites/i }).click();
+    fireEvent.click(screen.getByRole("button", { name: /add to favorites/i }));
     expect(onToggleFavorite).toHaveBeenCalledWith("abc-123");
   });
   it("calls onRequestDelete with the full note when the delete button is clicked", () => {
     const onRequestDelete = vi.fn();
     renderCard(baseNote, { onRequestDelete });
-    screen.getByRole("button", { name: /delete recording/i }).click();
+    fireEvent.click(screen.getByRole("button", { name: /delete recording/i }));
     expect(onRequestDelete).toHaveBeenCalledWith(baseNote);
   });
 });

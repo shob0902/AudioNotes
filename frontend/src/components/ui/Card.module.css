@@ -1,0 +1,32 @@
+/* Panels: white or inverted black boxes with a 2px rule and an optional hard-shadow lift. */
+.card {
+  border: var(--rule);
+  padding: clamp(18px, 2.4vw, 24px);
+  min-width: 0;
+}
+
+.white {
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
+.invert {
+  background: var(--bg-invert);
+  color: var(--text-invert);
+}
+
+.shadow {
+  box-shadow: var(--shadow);
+}
+
+.lift {
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition);
+}
+
+.lift:hover,
+.lift:focus-within {
+  transform: translate(-4px, -4px);
+  box-shadow: var(--shadow);
+}

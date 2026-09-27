@@ -1,28 +1,17 @@
-// A single dashboard statistic tile with an icon and an animated number.
-import { motion } from "framer-motion";
-import Card from "./ui/Card.jsx";
+// A single dashboard statistic cell with a mono label and a huge counting-up number.
 import { useCountUp } from "../hooks/useCountUp.js";
-// Fades the tile in and counts the value up from zero.
-export default function StatsCard({ icon, label, value, suffix = "", delayMs = 0 }) {
+import styles from "./StatsCard.module.css";
+// Counts the value up from zero and renders it under its label.
+export default function StatsCard({ label, value, suffix = "", note }) {
   const display = useCountUp(value);
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, delay: delayMs / 1000, ease: "easeOut" }}
-    >
-      <Card className="p-5">
-        <div className="flex items-center gap-2 text-muted">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-light text-primary">
-            {icon}
-          </span>
-          <span className="text-sm font-medium">{label}</span>
-        </div>
-        <p className="mt-3 text-3xl font-bold tabular-nums text-ink">
-          {display}
-          {suffix}
-        </p>
-      </Card>
-    </motion.div>
+    <div className={styles.cell}>
+      <p className={styles.label}>{label}</p>
+      <p className={styles.value}>
+        {display}
+        {suffix}
+      </p>
+      {note && <p className={styles.note}>{note}</p>}
+    </div>
   );
 }

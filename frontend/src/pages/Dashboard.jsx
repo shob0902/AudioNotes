@@ -1,22 +1,25 @@
-// The dashboard: upload hero, summary stats and the filterable, searchable list of recordings.
+// The dashboard: upload slab, summary stats, a sticky filter bar and the numbered list of recordings.
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import UploadCard from "../components/UploadCard.jsx";
 import StatsCard from "../components/StatsCard.jsx";
 import RecordingCard from "../components/RecordingCard.jsx";
 import ErrorBanner from "../components/ErrorBanner.jsx";
+import SearchBar from "../components/SearchBar.jsx";
 import Skeleton from "../components/ui/Skeleton.jsx";
 import EmptyState from "../components/ui/EmptyState.jsx";
 import Modal from "../components/ui/Modal.jsx";
 import Button from "../components/ui/Button.jsx";
-import { MicIcon, SparkleIcon, StarIcon } from "../components/icons.jsx";
+import { MicIcon, UploadCloudIcon } from "../components/icons.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import { useLocalStorageSet } from "../hooks/useLocalStorageSet.js";
 import { ApiError, deleteNote, listNotes } from "../services/api.js";
 import { formatDuration } from "../utils/format.js";
 import { isTerminalStatus } from "../utils/status.js";
+import styles from "./Dashboard.module.css";
 const FILTER_LABELS = {
-  all: "My Recordings",
+  all: "All recordings",
   completed: "Summaries",
   favorites: "Favorites",
 };
@@ -26,17 +29,23 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const notify = useToast();
+  const { user } = useAuth();
   const favorites = useLocalStorageSet("audio-notes:favorites");
   const filter = searchParams.get("filter");
-  const query = (searchParams.get("q") || "").trim().toLowerCase();
+  const rawQuery = searchParams.get("q") || "";
+  const query = rawQuery.trim().toLowerCase();
   const uploadFocusRequestId = searchParams.get("action") === "upload" ? searchParams.toString() : null;
   const isListView = Boolean(filter) || Boolean(query);
+  const [searchValue, setSearchValue] = useState(rawQuery);
+  useEffect(() => {
+    setSearchValue(rawQuery);
+  }, [rawQuery]);
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [filter, query]);
+  }, [filter]);
   const refresh = useCallback(async () => {
     try {
       const result = await listNotes();
@@ -51,6 +60,19 @@ export default function Dashboard() {
   useEffect(() => {
     refresh();
   }, [refresh]);
+  const updateParams = (changes) => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("action");
+    for (const [key, value] of Object.entries(changes)) {
+      if (value) next.set(key, value);
+      else next.delete(key);
+    }
+    setSearchParams(next, { replace: "q" in changes });
+  };
+  const handleSearch = (value) => {
+    setSearchValue(value);
+    updateParams({ q: value });
+  };
   const handleUploaded = (created) => {
     navigate(`/notes/${created.id}`);
   };
@@ -75,18 +97,17 @@ export default function Dashboard() {
     return { total: notes.length, completed, inProgress, totalSeconds, favoritedCount };
   }, [notes, favorites]);
   const visibleNotes = useMemo(() => {
+    let list = notes;
+    if (filter === "completed") list = list.filter((n) => n.status === "completed");
+    if (filter === "favorites") list = list.filter((n) => favorites.has(n.id));
     if (query) {
-      return notes.filter(
+      list = list.filter(
         (n) => n.title.toLowerCase().includes(query) || n.original_filename.toLowerCase().includes(query)
       );
     }
-    if (filter === "completed") return notes.filter((n) => n.status === "completed");
-    if (filter === "favorites") return notes.filter((n) => favorites.has(n.id));
-    return notes;
+    return list;
   }, [notes, filter, query, favorites]);
-  const sectionTitle = query
-    ? `Results for "${searchParams.get("q")}"`
-    : FILTER_LABELS[filter] || "Recent Recordings";
+  const sectionTitle = query ? `Results for "${rawQuery.trim()}"` : FILTER_LABELS[filter] || "Recent recordings";
   const emptyCopy = useMemo(() => {
     if (notes.length === 0) {
       return {
@@ -95,7 +116,7 @@ export default function Dashboard() {
       };
     }
     if (query) {
-      return { title: "Nothing matches your search", description: "Try a different search term." };
+      return { title: "No matches", description: "Try a different search term." };
     }
     if (filter === "favorites") {
       return { title: "No favorites yet", description: "Star a recording to pin it here." };
@@ -103,69 +124,117 @@ export default function Dashboard() {
     if (filter === "completed") {
       return { title: "No summaries yet", description: "Summaries appear here once processing completes." };
     }
-    return { title: "Nothing matches here", description: "Try a different filter." };
+    return { title: "Nothing here", description: "Try a different filter." };
   }, [notes.length, query, filter]);
+  const toggles = [
+    { id: null, label: "All", count: stats.total },
+    { id: "completed", label: "Summaries", count: stats.completed },
+    { id: "favorites", label: "Favorites", count: stats.favoritedCount },
+  ];
+  const activeToggle = filter === "all" ? null : filter;
   return (
-    <div className="space-y-6">
-      {!isListView && (
-        <>
-          <div>
-            <h1 className="text-2xl font-bold text-ink sm:text-[28px]">Good to see you</h1>
-            <p className="mt-1 text-sm text-muted">
-              Turn your recordings into useful notes — upload audio and let AI do the rest.
-            </p>
-          </div>
-          <UploadCard id="upload-card" onUploaded={handleUploaded} focusRequestId={uploadFocusRequestId} />
-          <section>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <StatsCard icon={<MicIcon className="h-4 w-4" />} label="Recordings" value={stats.total} delayMs={0} />
-              <StatsCard icon={<SparkleIcon className="h-4 w-4" />} label="Summaries" value={stats.completed} delayMs={100} />
+    <>
+      <div className="page">
+        <header className={styles.header}>
+          <p className={styles.eyebrow}>
+            Dashboard <span className={styles.faint}>{"//"}</span> {user?.email}
+          </p>
+          <h1 className={styles.title}>{isListView ? sectionTitle : "Your notes."}</h1>
+        </header>
+        {!isListView && (
+          <>
+            <UploadCard id="upload-card" onUploaded={handleUploaded} focusRequestId={uploadFocusRequestId} />
+            <section className={styles.stats} aria-label="Stats">
               <StatsCard
-                icon={<StarIcon className="h-4 w-4" />}
-                label="Favorites"
-                value={stats.favoritedCount}
-                delayMs={200}
+                label="Recordings"
+                value={stats.total}
+                note={stats.totalSeconds > 0 ? `${formatDuration(stats.totalSeconds)} of audio` : undefined}
               />
-              <StatsCard icon={<MicIcon className="h-4 w-4" />} label="In Progress" value={stats.inProgress} delayMs={300} />
+              <StatsCard label="Summaries" value={stats.completed} />
+              <StatsCard label="Favorites" value={stats.favoritedCount} />
+              <StatsCard label="In progress" value={stats.inProgress} />
+            </section>
+          </>
+        )}
+        <div className={styles.filterBar}>
+          <div className={styles.filterRow}>
+            <div className={styles.search}>
+              <SearchBar value={searchValue} onChange={handleSearch} />
             </div>
-            {stats.totalSeconds > 0 && (
-              <p className="mt-2 text-xs text-muted">Total audio processed: {formatDuration(stats.totalSeconds)}</p>
-            )}
-          </section>
-        </>
-      )}
-      <section>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className={isListView ? "text-xl font-bold text-ink sm:text-2xl" : "text-lg font-bold text-ink"}>
-            {sectionTitle}
-          </h2>
-          {isListView && (
-            <Link to="/dashboard?action=upload">
-              <Button variant="secondary" size="sm">
-                Upload New
+            <div className={styles.toggles} role="group" aria-label="Filter recordings">
+              {toggles.map((t) => {
+                const active = (activeToggle ?? null) === t.id;
+                return (
+                  <button
+                    key={t.label}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => updateParams({ filter: t.id })}
+                    className={`${styles.toggle} ${active ? styles.toggleActive : ""}`}
+                  >
+                    {t.label}
+                    <span className={styles.badge}>{t.count}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {isListView && (
+              <Button to="/dashboard?action=upload" variant="secondary" size="sm" className={styles.uploadButton}>
+                <UploadCloudIcon />
+                Upload new
               </Button>
-            </Link>
-          )}
+            )}
+          </div>
+          <p className={styles.summary} aria-live="polite">
+            {isLoading
+              ? "Loading recordings…"
+              : `Showing ${visibleNotes.length} of ${notes.length}${query ? ` // matching "${rawQuery.trim()}"` : ""}`}
+          </p>
         </div>
-        <div className="mt-4 space-y-3">
-          <ErrorBanner message={error} onRetry={refresh} />
-          {isLoading &&
-            [0, 1, 2].map((i) => <Skeleton key={i} className="h-[76px] w-full rounded-2xl" />)}
-          {!isLoading && !error && visibleNotes.length === 0 && (
-            <EmptyState icon={<MicIcon className="h-6 w-6" />} title={emptyCopy.title} description={emptyCopy.description} />
-          )}
+        {!isListView && <h2 className={styles.sectionTitle}>{sectionTitle}</h2>}
+        <ErrorBanner message={error} onRetry={refresh} />
+      </div>
+      {isLoading && (
+        <div className={styles.skeletons}>
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} style={{ height: 132 }} />
+          ))}
+        </div>
+      )}
+      {!isLoading && !error && visibleNotes.length === 0 && (
+        <div className="page">
+          <EmptyState
+            icon={<MicIcon />}
+            eyebrow="Empty // 0 results"
+            title={emptyCopy.title}
+            description={emptyCopy.description}
+            action={
+              notes.length === 0 ? (
+                <Button to="/dashboard?action=upload">Upload a recording</Button>
+              ) : (
+                <Button variant="secondary" onClick={() => setSearchParams(new URLSearchParams())}>
+                  Clear filters
+                </Button>
+              )
+            }
+          />
+        </div>
+      )}
+      {visibleNotes.length > 0 && (
+        <ol className={`${styles.list} onDark`}>
           {visibleNotes.map((note, index) => (
             <RecordingCard
               key={note.id}
               note={note}
+              index={index + 1}
               isFavorite={favorites.has(note.id)}
               onToggleFavorite={favorites.toggle}
               onRequestDelete={setPendingDelete}
-              delayMs={Math.min(index, 6) * 50}
+              delayMs={Math.min(index, 6) * 40}
             />
           ))}
-        </div>
-      </section>
+        </ol>
+      )}
       <Modal
         open={Boolean(pendingDelete)}
         title="Delete this recording?"
@@ -175,6 +244,6 @@ export default function Dashboard() {
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDelete(null)}
       />
-    </div>
+    </>
   );
 }

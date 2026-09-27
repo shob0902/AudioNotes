@@ -2,9 +2,14 @@
 import { useEffect, useRef, useState } from "react";
 import Waveform from "./Waveform.jsx";
 import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon, VolumeIcon } from "./icons.jsx";
-import { formatDuration } from "../utils/format.js";
+import styles from "./AudioPlayer.module.css";
 const SPEEDS = [1, 1.25, 1.5, 2];
 const SKIP_SECONDS = 10;
+// Formats seconds as m:ss for the running clock.
+function clock(seconds) {
+  const s = Math.max(0, Math.floor(seconds || 0));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
 // Tracks the audio element's position and duration and wires the transport buttons up to it.
 export default function AudioPlayer({ audioUrl, seed, fallbackDuration }) {
   const audioRef = useRef(null);
@@ -61,58 +66,53 @@ export default function AudioPlayer({ audioUrl, seed, fallbackDuration }) {
   };
   const progress = duration ? currentTime / duration : 0;
   return (
-    <div className="rounded-2xl border border-glass-border bg-elevated p-4 shadow-inset sm:p-5">
+    <div className={`${styles.player} onDark`}>
       <audio ref={audioRef} src={audioUrl} preload="metadata" />
-      <Waveform seed={seed} progress={progress} isPlaying={isPlaying} onSeek={seekToRatio} />
-      <div className="mt-1 flex items-center justify-between text-xs text-muted tabular-nums">
-        <span>{formatDuration(currentTime)}</span>
-        <span>{formatDuration(duration)}</span>
+      <div className={styles.meta}>
+        <span className={styles.eyebrow}>{isPlaying ? "Now playing" : "Playback"}</span>
+        <span className={styles.clock}>
+          {clock(currentTime)} <span className={styles.clockTotal}>/ {clock(duration)}</span>
+        </span>
       </div>
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-        <button
-          type="button"
-          onClick={() => skip(-SKIP_SECONDS)}
-          aria-label={`Back ${SKIP_SECONDS} seconds`}
-          className="rounded-full p-2 text-muted hover:text-ink"
-        >
-          <SkipBackIcon className="h-5 w-5" />
-        </button>
-        <button
-          type="button"
-          onClick={togglePlay}
-          aria-label={isPlaying ? "Pause" : "Play"}
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-white shadow-soft transition-transform active:scale-95"
-        >
-          {isPlaying ? <PauseIcon className="h-5 w-5" /> : <PlayIcon className="h-5 w-5 translate-x-0.5" />}
-        </button>
-        <button
-          type="button"
-          onClick={() => skip(SKIP_SECONDS)}
-          aria-label={`Forward ${SKIP_SECONDS} seconds`}
-          className="rounded-full p-2 text-muted hover:text-ink"
-        >
-          <SkipForwardIcon className="h-5 w-5" />
-        </button>
-        <div className="ml-2 flex items-center gap-2">
+      <Waveform seed={seed} progress={progress} isPlaying={isPlaying} onSeek={seekToRatio} />
+      <div className={styles.controls}>
+        <div className={styles.transport}>
           <button
             type="button"
-            onClick={cycleSpeed}
-            className="rounded-lg bg-surface px-2 py-1 text-xs font-semibold text-ink shadow-soft"
-            aria-label="Playback speed"
+            onClick={() => skip(-SKIP_SECONDS)}
+            aria-label={`Back ${SKIP_SECONDS} seconds`}
+            className={styles.skip}
           >
-            {SPEEDS[speedIndex]}x
+            <SkipBackIcon />
           </button>
-          <div className="relative">
+          <button type="button" onClick={togglePlay} aria-label={isPlaying ? "Pause" : "Play"} className={styles.play}>
+            {isPlaying ? <PauseIcon /> : <PlayIcon className={styles.playIcon} />}
+          </button>
+          <button
+            type="button"
+            onClick={() => skip(SKIP_SECONDS)}
+            aria-label={`Forward ${SKIP_SECONDS} seconds`}
+            className={styles.skip}
+          >
+            <SkipForwardIcon />
+          </button>
+        </div>
+        <div className={styles.extras}>
+          <button type="button" onClick={cycleSpeed} className={styles.chip} aria-label="Playback speed">
+            {SPEEDS[speedIndex]}×
+          </button>
+          <div className={styles.volumeWrap}>
             <button
               type="button"
               onClick={() => setShowVolume((v) => !v)}
               aria-label="Volume"
-              className="rounded-lg p-1.5 text-muted hover:text-ink"
+              aria-expanded={showVolume}
+              className={`${styles.chip} ${showVolume ? styles.chipActive : ""}`}
             >
-              <VolumeIcon className="h-4 w-4" />
+              <VolumeIcon className={styles.chipIcon} />
             </button>
             {showVolume && (
-              <div className="absolute right-0 top-full z-10 mt-2 rounded-lg bg-surface p-2 shadow-soft-lg">
+              <div className={styles.volumePanel}>
                 <input
                   type="range"
                   min="0"
@@ -120,7 +120,7 @@ export default function AudioPlayer({ audioUrl, seed, fallbackDuration }) {
                   step="0.05"
                   value={volume}
                   onChange={handleVolumeChange}
-                  className="h-24 w-2 accent-primary [writing-mode:vertical-lr]"
+                  className={styles.range}
                   aria-label="Volume level"
                 />
               </div>

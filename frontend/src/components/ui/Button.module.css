@@ -1,0 +1,107 @@
+/* Pill buttons: primary (black), accent (orange, for dark surfaces), secondary (outline), danger and ghost. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: var(--rule);
+  border-radius: var(--pill);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition),
+    transform var(--transition);
+}
+
+.button svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  transition: transform var(--transition);
+}
+
+.button:hover:not(:disabled) :global(.arrow) {
+  transform: rotate(45deg);
+}
+
+.button:disabled {
+  opacity: 0.55;
+}
+
+.sm {
+  padding: 9px 16px;
+  font-size: 11px;
+}
+
+.md {
+  padding: 13px 26px;
+  font-size: 12px;
+}
+
+.lg {
+  padding: 17px 34px;
+  font-size: 13px;
+}
+
+.block {
+  width: 100%;
+}
+
+.primary {
+  background: var(--black);
+  color: var(--white);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--white);
+  color: var(--black);
+  transform: scale(1.06);
+}
+
+.accent {
+  background: var(--orange);
+  color: var(--black);
+  border-color: var(--orange);
+}
+
+.accent:hover:not(:disabled) {
+  background: var(--white);
+  border-color: var(--white);
+  transform: scale(1.06);
+}
+
+.secondary {
+  background: transparent;
+  color: var(--black);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--black);
+  color: var(--white);
+}
+
+.danger {
+  background: var(--white);
+  color: var(--black);
+}
+
+.danger:hover:not(:disabled) {
+  background: var(--black);
+  color: var(--orange);
+}
+
+.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--black);
+}
+
+.ghost:hover:not(:disabled) {
+  border-color: var(--black);
+}

@@ -1,0 +1,72 @@
+/* Status pills: completed = black/orange, failed = white, waiting = outline, active = outline with a blinking dot. */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border: var(--rule);
+  border-radius: var(--pill);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.done {
+  background: var(--black);
+  color: var(--orange);
+}
+
+.failed {
+  background: var(--white);
+  color: var(--black);
+}
+
+.waiting {
+  color: var(--text-muted);
+  border-style: dashed;
+}
+
+.active {
+  color: var(--black);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  background: currentColor;
+  animation: blink 1s steps(2, start) infinite;
+}
+
+/* Inverted palette for rows on black. */
+.dark {
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--text-invert-muted);
+  background: transparent;
+}
+
+.dark.done {
+  border-color: var(--orange);
+  background: var(--orange);
+  color: var(--black);
+}
+
+.dark.failed {
+  border-color: var(--white);
+  background: var(--white);
+  color: var(--black);
+}
+
+.dark.active {
+  border-color: var(--orange);
+  color: var(--orange);
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.2;
+  }
+}

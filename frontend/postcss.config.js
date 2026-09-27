@@ -1,7 +1,6 @@
-// PostCSS pipeline that runs Tailwind and then autoprefixer.
+// PostCSS pipeline: just autoprefixer, for the vendor-prefixed bits like line-clamp.
 export default {
   plugins: {
-    tailwindcss: {},
     autoprefixer: {},
   },
 };

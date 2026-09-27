@@ -93,7 +93,7 @@ Browser (React) --upload--> FastAPI --validate/store/schedule--> responds immedi
 
 | Layer | Choice |
 |---|---|
-| Frontend | React + Vite + Tailwind CSS + React Router (JavaScript) |
+| Frontend | React + Vite + CSS Modules + React Router (JavaScript) |
 | Backend | Python + FastAPI + Uvicorn |
 | Database | PostgreSQL + SQLAlchemy + Alembic |
 | Background processing | FastAPI `BackgroundTasks` (in-process, no separate worker/queue) |
@@ -111,7 +111,7 @@ Browser (React) --upload--> FastAPI --validate/store/schedule--> responds immedi
 
 ```
 audio-notes/
-├── frontend/                  React + Vite + Tailwind app
+├── frontend/                  React + Vite + CSS Modules app
 │   ├── src/
 │   │   ├── components/        UploadDropzone, NoteCard, StatusChecklist, SummaryView, ...
 │   │   ├── pages/              Dashboard, NoteDetail, Architecture, NotFound

@@ -1,0 +1,12 @@
+/* The self-drawing tick: a stroke-dash reveal. */
+.path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: draw 300ms ease-out forwards;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}

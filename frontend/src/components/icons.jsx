@@ -4,20 +4,22 @@ const base = {
   viewBox: "0 0 24 24",
   fill: "none",
   stroke: "currentColor",
-  strokeWidth: 1.75,
-  strokeLinecap: "round",
-  strokeLinejoin: "round",
+  strokeWidth: 1.7,
+  strokeLinecap: "square",
+  strokeLinejoin: "miter",
+  "aria-hidden": "true",
 };
+const arrowBase = { ...base, strokeWidth: 2.5 };
 // Four panels, used for the Dashboard nav item.
 export const DashboardIcon = (props) => (
   <svg {...base} {...props}>
-    <rect x="3.5" y="3.5" width="7.5" height="7.5" rx="2" />
-    <rect x="13" y="3.5" width="7.5" height="4.5" rx="2" />
-    <rect x="13" y="10.5" width="7.5" height="10" rx="2" />
-    <rect x="3.5" y="13.5" width="7.5" height="7" rx="2" />
+    <rect x="3.5" y="3.5" width="7.5" height="7.5" />
+    <rect x="13" y="3.5" width="7.5" height="4.5" />
+    <rect x="13" y="10.5" width="7.5" height="10" />
+    <rect x="3.5" y="13.5" width="7.5" height="7" />
   </svg>
 );
-// A microphone, used for recordings and the app logo.
+// A microphone, used for recordings.
 export const MicIcon = (props) => (
   <svg {...base} {...props}>
     <rect x="9" y="3" width="6" height="11" rx="3" />
@@ -59,13 +61,20 @@ export const SearchIcon = (props) => (
     <path d="m20 20-3.8-3.8" />
   </svg>
 );
-// A hamburger, used to open the sidebar on mobile.
-export const MenuIcon = (props) => (
+// An open book, used for the architecture docs nav item.
+export const BookIcon = (props) => (
   <svg {...base} {...props}>
-    <path d="M4 7h16M4 12h16M4 17h16" />
+    <path d="M3.5 5h6a2.5 2.5 0 0 1 2.5 2.5V20a2 2 0 0 0-2-2H3.5V5Z" />
+    <path d="M20.5 5h-6A2.5 2.5 0 0 0 12 7.5V20a2 2 0 0 1 2-2h6.5V5Z" />
   </svg>
 );
-// An X, used to dismiss the mobile sidebar.
+// A house, used for the Home nav item when logged out.
+export const HomeIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M4 10.5 12 4l8 6.5V20h-5.5v-5.5h-5V20H4v-9.5Z" />
+  </svg>
+);
+// An X, used to dismiss toasts.
 export const CloseIcon = (props) => (
   <svg {...base} {...props}>
     <path d="M6 6l12 12M18 6 6 18" />
@@ -80,8 +89,8 @@ export const PlayIcon = (props) => (
 // Two filled bars, used to pause playback.
 export const PauseIcon = (props) => (
   <svg {...base} {...props} fill="currentColor" stroke="none">
-    <rect x="7" y="5" width="4" height="14" rx="1" />
-    <rect x="13" y="5" width="4" height="14" rx="1" />
+    <rect x="7" y="5" width="4" height="14" />
+    <rect x="13" y="5" width="4" height="14" />
   </svg>
 );
 // A back arrow with a bar, used to skip backwards.
@@ -108,7 +117,39 @@ export const VolumeIcon = (props) => (
 // A bin, used for the delete action.
 export const TrashIcon = (props) => (
   <svg {...base} {...props}>
-    <path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12a2 2 0 0 1-2 1.9H8.8a2 2 0 0 1-2-1.9L6 7" />
+    <path d="M5 7h14M9 7V4h6v3m3 0-1 13.5H7L6 7" />
     <path d="M10 11v6M14 11v6" />
+  </svg>
+);
+// A copy glyph, used by the copy-to-clipboard button.
+export const CopyIcon = (props) => (
+  <svg {...base} {...props}>
+    <rect x="8.5" y="8.5" width="11" height="11" />
+    <path d="M15.5 8.5v-4h-11v11h4" />
+  </svg>
+);
+// A warning triangle, used by inline error notices.
+export const AlertIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M12 3.5 21.5 20h-19L12 3.5Z" />
+    <path d="M12 10v4.5M12 17v.5" />
+  </svg>
+);
+// A diagonal up-right arrow, used in CTAs; it rotates 45° on hover.
+export const ArrowIcon = (props) => (
+  <svg {...arrowBase} {...props}>
+    <path d="M7 17 17 7M9 7h8v8" />
+  </svg>
+);
+// A left arrow, used by back buttons.
+export const BackIcon = (props) => (
+  <svg {...arrowBase} {...props}>
+    <path d="M20 12H5m6-6-6 6 6 6" />
+  </svg>
+);
+// A downward arrow, used in the scroll dial.
+export const DownArrowIcon = (props) => (
+  <svg {...arrowBase} {...props}>
+    <path d="M12 4v15m-6-6 6 6 6-6" />
   </svg>
 );

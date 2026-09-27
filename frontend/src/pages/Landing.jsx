@@ -1,28 +1,33 @@
-// The public marketing page at the root URL, explaining the product in three steps.
+// The public landing page: typographic masthead, marquee band, numbered how-it-works list and a sample output slab.
 import { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import Button from "../components/ui/Button.jsx";
-import Card from "../components/ui/Card.jsx";
+import Marquee from "../components/Marquee.jsx";
+import ScrollDial from "../components/ScrollDial.jsx";
+import { ArrowIcon } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import { MicIcon, SparkleIcon, UploadCloudIcon } from "../components/icons.jsx";
+import { generateWaveformBars } from "../utils/waveform.js";
+import styles from "./Landing.module.css";
 const STEPS = [
   {
-    icon: UploadCloudIcon,
     title: "Upload",
     description: "Drop in a recording — a meeting, a lecture, a voice memo. MP3, WAV, M4A, and more.",
+    tags: ["MP3", "WAV", "M4A", "Up to 200 MB"],
   },
   {
-    icon: MicIcon,
     title: "Transcribe",
-    description: "Gnani's speech-to-text turns your audio into an accurate, readable transcript.",
+    description: "Gnani's speech-to-text turns your audio into an accurate, readable transcript, chunk by chunk.",
+    tags: ["Gnani ASR", "30s chunks"],
+    accent: "Gnani ASR",
   },
   {
-    icon: SparkleIcon,
     title: "Summarize",
-    description: "Groq's LLM extracts key points, action items, decisions, and topics — instantly searchable.",
+    description: "Groq's LLM extracts key points, action items, decisions and topics — instantly searchable.",
+    tags: ["Groq LLM", "Key points", "Action items", "Decisions"],
+    accent: "Groq LLM",
   },
 ];
+const SAMPLE_BARS = generateWaveformBars("landing-sample", 64);
 // Sends anyone already logged in to their dashboard, and otherwise renders the pitch.
 export default function Landing() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -36,82 +41,103 @@ export default function Landing() {
   }, [isLoading, isAuthenticated, navigate]);
   if (isLoading || isAuthenticated) return null;
   return (
-    <div className="min-h-screen">
-      <header className="mx-auto flex max-w-5xl items-center justify-between px-4 py-6 sm:px-6">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 animate-float items-center justify-center rounded-xl bg-primary text-white shadow-soft">
-            <MicIcon className="h-[18px] w-[18px]" />
-          </span>
-          <span className="text-base font-bold text-ink">AudioNotes</span>
-        </div>
-        <Link to="/login" state={loginState} className="text-sm font-medium text-ink hover:text-primary">
-          Log in
-        </Link>
-      </header>
-      <main className="mx-auto max-w-3xl px-4 pb-24 pt-12 text-center sm:px-6 sm:pt-20">
-        <motion.h1
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="text-3xl font-bold tracking-tight text-ink sm:text-5xl"
-        >
-          Turn recordings into clear, useful notes
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
-          className="mx-auto mt-4 max-w-xl text-base text-muted sm:text-lg"
-        >
-          Upload any recording and let AI do the rest — a full transcript plus a structured summary with key
-          points, action items, and decisions, ready in minutes.
-        </motion.p>
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
-          className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
-        >
-          <Link to="/signup">
-            <Button variant="primary" size="lg">
-              Get Started
+    <>
+      <div className="page">
+        <section className={styles.masthead}>
+          <h1 className={styles.headline}>
+            Audio
+            <br />
+            Notes.
+          </h1>
+          <div className={styles.metaRow}>
+            <p className={styles.metaLeft}>
+              <span>Record // Transcribe</span>
+              <span className={styles.muted}>Summarize — in minutes</span>
+            </p>
+            <ScrollDial href="#how-it-works" />
+            <p className={styles.metaRight}>
+              <span>Speech in.</span>
+              <span className={styles.muted}>Notes out.</span>
+            </p>
+          </div>
+        </section>
+        <section className={styles.lead}>
+          <p className={styles.leadText}>
+            Upload any recording and let AI do the rest — a full transcript plus a structured summary with key points,
+            action items and decisions, ready in minutes.
+          </p>
+          <div className={styles.leadActions}>
+            <Button to="/signup" size="lg">
+              Get started
+              <ArrowIcon className="arrow" />
             </Button>
-          </Link>
-          <Link to="/login" state={loginState}>
-            <Button variant="secondary" size="lg">
-              I already have an account
+            <Button to="/login" state={loginState} variant="secondary" size="lg">
+              I have an account
             </Button>
-          </Link>
-        </motion.div>
-        <div className="mt-16 grid grid-cols-1 gap-4 text-left sm:grid-cols-3">
-          {STEPS.map((step, index) => {
-            const Icon = step.icon;
-            return (
-              <motion.div
-                key={step.title}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.3 + index * 0.1, ease: "easeOut" }}
-              >
-                <Card variant="elevated" className="h-full p-5">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-light text-primary">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <p className="mt-3 font-semibold text-ink">{step.title}</p>
-                  <p className="mt-1 text-sm text-muted">{step.description}</p>
-                </Card>
-              </motion.div>
-            );
-          })}
-        </div>
-        <p className="mt-16 text-xs text-muted">
-          Curious how it works under the hood?{" "}
-          <Link to="/architecture" className="font-medium text-primary hover:underline">
-            Read the architecture
-          </Link>
-          .
-        </p>
-      </main>
-    </div>
+          </div>
+        </section>
+      </div>
+      <Marquee
+        label="What Audio Notes does"
+        top={["Upload", "Transcribe", "Summarize"]}
+        bottom={["Key points", "Action items", "Decisions", "Topics"]}
+      />
+      <div className="page">
+        <h2 id="how-it-works" className={styles.sectionTitle}>
+          How it works
+        </h2>
+      </div>
+      <ol className={`${styles.index} onDark`}>
+        {STEPS.map((step, i) => (
+          <li key={step.title} className={styles.indexRow}>
+            <span className={styles.indexNumber}>{String(i + 1).padStart(2, "0")}</span>
+            <div className={styles.indexBody}>
+              <h3 className={styles.indexTitle}>
+                <Link to="/architecture" className={styles.indexLink}>
+                  {step.title}
+                </Link>
+              </h3>
+              <p className={styles.indexText}>{step.description}</p>
+              <ul className={styles.tags}>
+                {step.tags.map((tag) => (
+                  <li key={tag} className={`${styles.tag} ${tag === step.accent ? styles.tagAccent : ""}`}>
+                    {tag}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <ArrowIcon className={styles.indexArrow} />
+          </li>
+        ))}
+      </ol>
+      <div className="page">
+        <h2 className={styles.sectionTitle}>What you get</h2>
+        <article className={`${styles.spotlight} onDark`}>
+          <div className={styles.spotlightWave} aria-hidden="true">
+            {SAMPLE_BARS.map((h, i) => (
+              <span key={i} style={{ height: `${h * 100}%` }} />
+            ))}
+          </div>
+          <div className={styles.spotlightContent}>
+            <span className={styles.eyebrow}>Sample // Output</span>
+            <h3 className={styles.spotlightTitle}>Weekly sync: Q3 roadmap</h3>
+            <ul className={styles.chips}>
+              <li className={styles.chip}>42 min</li>
+              <li className={`${styles.chip} ${styles.chipHighlight}`}>6 action items</li>
+              <li className={styles.chip}>3 decisions</li>
+              <li className={styles.chip}>Completed</li>
+            </ul>
+            <p className={styles.spotlightText}>
+              The team agreed to ship the mobile beta before the pricing change, moved the analytics rebuild to Q4,
+              and assigned owners for the onboarding revamp. Open questions remain on the enterprise SSO timeline.
+            </p>
+            <Button to="/signup" variant="accent">
+              Try it on your audio
+              <ArrowIcon className="arrow" />
+            </Button>
+          </div>
+        </article>
+      </div>
+    </>
   );
 }
