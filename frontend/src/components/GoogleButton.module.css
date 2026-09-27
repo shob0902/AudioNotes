@@ -1,0 +1,55 @@
+/* Google sign-in pill: white with a 2px rule and the Google mark; lifts into a hard shadow on hover. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: var(--rule);
+  border-radius: var(--pill);
+  background: var(--white);
+  color: var(--black);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition),
+    background var(--transition);
+}
+
+.button:hover:not(:disabled) {
+  transform: translate(-3px, -3px);
+  box-shadow: var(--shadow);
+}
+
+.button:active:not(:disabled) {
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.button:disabled {
+  opacity: 0.8;
+}
+
+.md {
+  padding: 12px 22px;
+  font-size: 12px;
+}
+
+.lg {
+  padding: 16px 30px;
+  font-size: 13px;
+}
+
+.block {
+  width: 100%;
+}
+
+.mark {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}

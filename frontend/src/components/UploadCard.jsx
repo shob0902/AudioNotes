@@ -97,8 +97,8 @@ export default function UploadCard({ onUploaded, focusRequestId, id }) {
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
         >
-          <span className={styles.eyebrow}>Upload // New recording</span>
-          <span className={styles.headline}>{isDragging ? "Let go." : "Drop audio here"}</span>
+          <span className={styles.eyebrow}>Upload // Audio file</span>
+          <span className={styles.headline}>{isDragging ? "Let go." : "Upload it."}</span>
           <span className={styles.copy}>
             Drag &amp; drop a meeting, lecture or voice memo — or pick one from your device. We'll transcribe it and
             pull out the key points.

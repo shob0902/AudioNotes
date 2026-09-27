@@ -4,12 +4,12 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { GITHUB_REPO_URL } from "../../utils/links.js";
 import { ArrowIcon } from "../icons.jsx";
 import styles from "./Footer.module.css";
-// Points the CTA at uploading when logged in and at signing up otherwise.
+// Points the CTA at uploading when logged in and at signing in otherwise.
 export default function Footer() {
   const { isAuthenticated } = useAuth();
   const cta = isAuthenticated
     ? { to: "/dashboard?action=upload", label: "Upload a recording" }
-    : { to: "/signup", label: "Start taking notes" };
+    : { to: "/login", label: "Start taking notes" };
   return (
     <footer className={styles.footer}>
       <div className="page">

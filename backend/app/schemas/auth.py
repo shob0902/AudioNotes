@@ -1,16 +1,15 @@
 # Request and response shapes for the authentication endpoints.
 import uuid
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
-# Body of a signup request, with the minimum password length enforced here.
-class SignupRequest(BaseModel):
-    email: EmailStr
-    password: str = Field(min_length=8, max_length=128)
-# Body of a login request.
-class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str
-# Access token handed back after a successful signup or login.
+from typing import Optional
+from pydantic import BaseModel, ConfigDict, Field
+# The consent-screen URL the browser should be sent to.
+class GoogleAuthUrlResponse(BaseModel):
+    url: str
+# Body of the Google callback exchange: the one-time code Google appended to the redirect URL.
+class GoogleLoginRequest(BaseModel):
+    code: str = Field(min_length=1, max_length=2048)
+# Access token handed back after a successful Google sign-in.
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -19,4 +18,6 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
     email: str
+    name: Optional[str] = None
+    avatar_url: Optional[str] = None
     created_at: datetime

@@ -1,6 +1,6 @@
 # Notes API: upload, list, fetch, poll status, retry and delete, all scoped to the logged-in user.
 import uuid
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.config import Settings, get_settings
@@ -22,6 +22,7 @@ from app.workers.tasks import run_note_processing
 logger = get_logger(__name__)
 router = APIRouter(prefix="/notes", tags=["notes"])
 _RETRYABLE_STATUSES = {NoteStatus.FAILED}
+MAX_LIVE_TRANSCRIPT_CHARS = 200_000
 # Fetches a note and 404s unless it exists and belongs to this user, so ids are never leaked.
 def _get_owned_note(db: Session, note_id: uuid.UUID, user_id: uuid.UUID) -> Note:
     note = db.get(Note, note_id)
@@ -79,6 +80,71 @@ async def create_note(
     background_tasks.add_task(run_note_processing, str(note.id))
     logger.info("note.queued", extra={"note_id": str(note.id), "duration": metadata.duration_seconds})
     return NoteCreateResponse(id=note.id, status=note.status)
+# Saves a note transcribed live in the browser: the transcript arrives ready-made, so only the summary runs.
+# The recording is optional and best-effort; if storage fails the note is still saved without audio.
+@router.post("/live", response_model=NoteCreateResponse, status_code=status.HTTP_202_ACCEPTED)
+async def create_live_note(
+    background_tasks: BackgroundTasks,
+    transcript: str = Form(...),
+    title: str | None = Form(None),
+    duration: float | None = Form(None),
+    file: UploadFile | None = File(None),
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    current_user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    transcript = transcript.strip()
+    if not transcript:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="The transcript is empty.")
+    if len(transcript) > MAX_LIVE_TRANSCRIPT_CHARS:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"The transcript is too long. Maximum is {MAX_LIVE_TRANSCRIPT_CHARS:,} characters.",
+        )
+    clean_title = (title or "").strip()[:255] or "Live note"
+    note = Note(
+        id=uuid.uuid4(),
+        user_id=current_user_id,
+        title=clean_title,
+        original_filename="live-transcription",
+        storage_key="",
+        file_size=0,
+        duration=duration if duration and duration > 0 else None,
+        mime_type="text/plain",
+        transcript=transcript,
+        status=NoteStatus.UPLOADED,
+    )
+    file_bytes = await file.read() if file is not None else b""
+    if file_bytes:
+        original_filename = sanitize_filename(file.filename or "live-recording.webm")
+        try:
+            metadata = validate_and_probe_audio(
+                file_bytes,
+                original_filename,
+                max_size_bytes=settings.max_upload_size_bytes,
+                min_duration_seconds=settings.min_audio_duration_seconds,
+            )
+            storage = StorageService(settings)
+            storage_key = storage.build_storage_key(note.id, original_filename)
+            storage.upload_file(storage_key, file_bytes, metadata.content_type)
+            note.original_filename = original_filename
+            note.storage_key = storage_key
+            note.file_size = len(file_bytes)
+            note.duration = metadata.duration_seconds
+            note.mime_type = metadata.content_type
+        except (ValidationError, StorageError) as exc:
+            logger.warning(
+                "note.live_audio_skipped",
+                extra={"note_id": str(note.id), "reason": exc.technical_detail},
+            )
+    db.add(note)
+    db.commit()
+    db.refresh(note)
+    note.status = NoteStatus.QUEUED
+    db.commit()
+    background_tasks.add_task(run_note_processing, str(note.id))
+    logger.info("note.live_queued", extra={"note_id": str(note.id), "has_audio": bool(note.storage_key)})
+    return NoteCreateResponse(id=note.id, status=note.status)
 # Returns a page of the user's notes, newest first, with the total count in the same query.
 @router.get("", response_model=NoteListResponse)
 def list_notes(
@@ -111,6 +177,8 @@ def get_note(
 ):
     note = _get_owned_note(db, note_id, current_user_id)
     detail = NoteDetailResponse.model_validate(note)
+    if not note.storage_key:
+        return detail
     try:
         detail.audio_url = StorageService(settings).get_file_url(note.storage_key)
     except StorageError as exc:
@@ -154,10 +222,10 @@ def delete_note(
     current_user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     note = _get_owned_note(db, note_id, current_user_id)
-    storage = StorageService(settings)
-    try:
-        storage.delete_file(note.storage_key)
-    except StorageError as exc:
-        logger.error("note.delete_storage_failed", extra={"note_id": str(note.id), "error": exc.technical_detail})
+    if note.storage_key:
+        try:
+            StorageService(settings).delete_file(note.storage_key)
+        except StorageError as exc:
+            logger.error("note.delete_storage_failed", extra={"note_id": str(note.id), "error": exc.technical_detail})
     db.delete(note)
     db.commit()

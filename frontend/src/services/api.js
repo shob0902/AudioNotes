@@ -32,7 +32,12 @@ export function setUnauthorizedHandler(handler) {
 async function request(path, options = {}) {
   const headers = new Headers(options.headers || {});
   if (authToken) headers.set("Authorization", `Bearer ${authToken}`);
-  const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+  } catch {
+    throw new ApiError("Couldn't reach the server — it may be down or it hit an internal error. Please try again.", 0);
+  }
   if (response.status === 401 && authToken) {
     onUnauthorized?.();
   }
@@ -49,13 +54,13 @@ function requestJson(path, options = {}) {
     headers: { "Content-Type": "application/json", ...(options.headers || {}) },
   });
 }
-// Creates a new account and returns its access token.
-export function signup(email, password) {
-  return requestJson("/auth/signup", { method: "POST", body: JSON.stringify({ email, password }) });
+// Asks the backend for the Google consent-screen URL, carrying the browser's CSRF state.
+export function getGoogleAuthUrl(state) {
+  return request(`/auth/google/url?state=${encodeURIComponent(state)}`);
 }
-// Exchanges an email and password for an access token.
-export function login(email, password) {
-  return requestJson("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
+// Swaps the one-time code Google sent back for this app's access token.
+export function loginWithGoogle(code) {
+  return requestJson("/auth/google", { method: "POST", body: JSON.stringify({ code }) });
 }
 // Fetches the account the current token belongs to.
 export function getCurrentUser() {
@@ -66,6 +71,18 @@ export function uploadNote(file) {
   const formData = new FormData();
   formData.append("file", file);
   return request("/notes", { method: "POST", body: formData });
+}
+// Saves a note transcribed live in the browser, with the recording attached when there is one.
+export function createLiveNote({ transcript, title, duration, audioBlob }) {
+  const formData = new FormData();
+  formData.append("transcript", transcript);
+  if (title) formData.append("title", title);
+  if (duration) formData.append("duration", String(duration));
+  if (audioBlob && audioBlob.size > 0) {
+    const extension = audioBlob.type.includes("mp4") ? "mp4" : audioBlob.type.includes("ogg") ? "ogg" : "webm";
+    formData.append("file", audioBlob, `live-recording.${extension}`);
+  }
+  return request("/notes/live", { method: "POST", body: formData });
 }
 // Fetches a page of the user's notes.
 export function listNotes({ limit = 50, offset = 0 } = {}) {

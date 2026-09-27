@@ -18,9 +18,22 @@ export default function Settings() {
       <div className={styles.grid}>
         <section className={styles.panel}>
           <h2 className={styles.panelTitle}>Account</h2>
+          <div className={styles.profile}>
+            {user?.avatar_url ? (
+              <img src={user.avatar_url} alt="" className={styles.avatar} referrerPolicy="no-referrer" />
+            ) : (
+              <span className={styles.avatarFallback} aria-hidden="true">
+                {(user?.name || user?.email || "?").charAt(0)}
+              </span>
+            )}
+            <div className={styles.profileText}>
+              <p className={styles.profileName}>{user?.name || user?.email}</p>
+              <p className={styles.factLabel}>Signed in with Google</p>
+            </div>
+          </div>
           <dl className={styles.facts}>
             <div className={styles.fact}>
-              <dt className={styles.factLabel}>Signed in as</dt>
+              <dt className={styles.factLabel}>Email</dt>
               <dd className={styles.factValue}>{user?.email}</dd>
             </div>
             <div className={styles.fact}>

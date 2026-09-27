@@ -12,7 +12,7 @@ if _settings.ffmpeg_path:
     AudioSegment.converter = _settings.ffmpeg_path
 if _settings.ffprobe_path:
     pydub.utils.get_prober_name = lambda: _settings.ffprobe_path
-ALLOWED_EXTENSIONS = {"mp3", "wav", "m4a", "aac", "ogg", "flac"}
+ALLOWED_EXTENSIONS = {"mp3", "wav", "m4a", "aac", "ogg", "flac", "webm", "mp4"}
 EXTENSION_CONTENT_TYPES = {
     "mp3": "audio/mpeg",
     "wav": "audio/wav",
@@ -20,6 +20,8 @@ EXTENSION_CONTENT_TYPES = {
     "aac": "audio/aac",
     "ogg": "audio/ogg",
     "flac": "audio/flac",
+    "webm": "audio/webm",
+    "mp4": "audio/mp4",
 }
 # What we learn about an upload once ffmpeg has actually decoded it.
 @dataclass

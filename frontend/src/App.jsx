@@ -1,5 +1,5 @@
 // Root component that sets up the providers and the whole route table.
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import AppShell from "./components/layout/AppShell.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -12,7 +12,6 @@ import Login from "./pages/Login.jsx";
 import NoteDetail from "./pages/NoteDetail.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import Settings from "./pages/Settings.jsx";
-import Signup from "./pages/Signup.jsx";
 // Wraps a page that needs a logged-in user in the login check.
 function Protected({ children }) {
   return <ProtectedRoute>{children}</ProtectedRoute>;
@@ -29,7 +28,7 @@ export default function App() {
               <Routes location={location}>
                 <Route path="/" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
+                <Route path="/signup" element={<Navigate to="/login" replace />} />
                 <Route path="/architecture" element={<Architecture />} />
                 <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
                 <Route path="/notes/:id" element={<Protected><NoteDetail /></Protected>} />

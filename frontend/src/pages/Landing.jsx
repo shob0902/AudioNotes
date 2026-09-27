@@ -2,10 +2,13 @@
 import { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button.jsx";
+import GoogleButton from "../components/GoogleButton.jsx";
+import GoogleCallback from "../components/GoogleCallback.jsx";
 import Marquee from "../components/Marquee.jsx";
 import ScrollDial from "../components/ScrollDial.jsx";
 import { ArrowIcon } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { readGoogleCallback } from "../utils/googleAuth.js";
 import { generateWaveformBars } from "../utils/waveform.js";
 import styles from "./Landing.module.css";
 const STEPS = [
@@ -28,17 +31,20 @@ const STEPS = [
   },
 ];
 const SAMPLE_BARS = generateWaveformBars("landing-sample", 64);
-// Sends anyone already logged in to their dashboard, and otherwise renders the pitch.
+// Handles Google's sign-in redirect (which lands on "/"), sends anyone already logged in to their dashboard,
+// and otherwise renders the pitch.
 export default function Landing() {
   const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const loginState = location.state?.from ? { from: location.state.from } : undefined;
+  const isGoogleCallback = Boolean(readGoogleCallback(location.search));
+  const returnTo = location.state?.from || "/dashboard";
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isGoogleCallback && !isLoading && isAuthenticated) {
       navigate("/dashboard", { replace: true });
     }
-  }, [isLoading, isAuthenticated, navigate]);
+  }, [isGoogleCallback, isLoading, isAuthenticated, navigate]);
+  if (isGoogleCallback) return <GoogleCallback />;
   if (isLoading || isAuthenticated) return null;
   return (
     <>
@@ -67,13 +73,7 @@ export default function Landing() {
             action items and decisions, ready in minutes.
           </p>
           <div className={styles.leadActions}>
-            <Button to="/signup" size="lg">
-              Get started
-              <ArrowIcon className="arrow" />
-            </Button>
-            <Button to="/login" state={loginState} variant="secondary" size="lg">
-              I have an account
-            </Button>
+            <GoogleButton from={returnTo} />
           </div>
         </section>
       </div>
@@ -131,7 +131,7 @@ export default function Landing() {
               The team agreed to ship the mobile beta before the pricing change, moved the analytics rebuild to Q4,
               and assigned owners for the onboarding revamp. Open questions remain on the enterprise SSO timeline.
             </p>
-            <Button to="/signup" variant="accent">
+            <Button to="/login" variant="accent">
               Try it on your audio
               <ArrowIcon className="arrow" />
             </Button>

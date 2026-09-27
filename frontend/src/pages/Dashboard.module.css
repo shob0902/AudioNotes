@@ -24,6 +24,23 @@
   line-height: 0.85;
 }
 
+/* Upload a file and Speak it, side by side from 940px so both ways in are visible at once. */
+.inputs {
+  display: grid;
+  gap: clamp(20px, 2.4vw, 28px);
+}
+
+.inputs > * {
+  min-width: 0;
+}
+
+@media (min-width: 940px) {
+  .inputs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

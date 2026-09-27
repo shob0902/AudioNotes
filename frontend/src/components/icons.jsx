@@ -86,6 +86,12 @@ export const PlayIcon = (props) => (
     <path d="M8 5.5v13l11-6.5-11-6.5Z" />
   </svg>
 );
+// A filled square, used to stop a live recording.
+export const StopIcon = (props) => (
+  <svg {...base} {...props} fill="currentColor" stroke="none">
+    <rect x="6" y="6" width="12" height="12" />
+  </svg>
+);
 // Two filled bars, used to pause playback.
 export const PauseIcon = (props) => (
   <svg {...base} {...props} fill="currentColor" stroke="none">

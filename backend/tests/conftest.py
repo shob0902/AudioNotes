@@ -70,10 +70,18 @@ def client(db_session, monkeypatch):
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
-# Signs a fresh user up through the real API and returns Authorization headers for them.
+# Returns a factory that creates a (Google) user directly in the test session and hands back their auth headers.
 @pytest.fixture()
-def auth_headers(client):
-    response = client.post("/api/auth/signup", json={"email": "test@example.com", "password": "correct-horse-battery"})
-    assert response.status_code == 201, response.text
-    token = response.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
+def make_auth_headers(db_session):
+    from app.models.user import User
+    from app.services.auth_service import AuthService
+    def _make(email: str) -> dict:
+        user = User(email=email, google_sub=f"google-{email}", name=email.split("@")[0])
+        db_session.add(user)
+        db_session.commit()
+        return {"Authorization": f"Bearer {AuthService().create_access_token(user.id)}"}
+    return _make
+# Authorization headers for the default test user.
+@pytest.fixture()
+def auth_headers(client, make_auth_headers):
+    return make_auth_headers("test@example.com")

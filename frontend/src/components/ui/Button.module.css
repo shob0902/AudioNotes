@@ -96,6 +96,18 @@
   color: var(--orange);
 }
 
+.outlineDark {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.5);
+  color: var(--white);
+}
+
+.outlineDark:hover:not(:disabled) {
+  background: var(--white);
+  border-color: var(--white);
+  color: var(--black);
+}
+
 .ghost {
   background: transparent;
   border-color: transparent;

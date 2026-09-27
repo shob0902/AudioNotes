@@ -1,5 +1,8 @@
 /* Upload slab: a white ruled dropzone with a giant headline that inverts to black while dragging. */
 .card {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
   border: var(--rule);
   background: var(--white);
   transition:
@@ -23,6 +26,7 @@
 }
 
 .dropzone {
+  flex: 1;
   cursor: pointer;
   transition:
     background var(--transition),
@@ -57,7 +61,7 @@
 
 .headline {
   font-family: var(--font-display);
-  font-size: clamp(40px, 8vw, 112px);
+  font-size: clamp(36px, 12cqi, 96px);
   line-height: 0.85;
   letter-spacing: -0.04em;
   text-transform: uppercase;
@@ -141,7 +145,7 @@
 .filename {
   max-width: 100%;
   font-family: var(--font-display);
-  font-size: clamp(28px, 5vw, 64px);
+  font-size: clamp(26px, 7cqi, 56px);
   line-height: 0.9;
   letter-spacing: -0.04em;
   text-transform: uppercase;

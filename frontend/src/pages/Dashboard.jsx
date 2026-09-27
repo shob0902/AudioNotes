@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import UploadCard from "../components/UploadCard.jsx";
+import LiveRecorder from "../components/LiveRecorder.jsx";
 import StatsCard from "../components/StatsCard.jsx";
 import RecordingCard from "../components/RecordingCard.jsx";
 import ErrorBanner from "../components/ErrorBanner.jsx";
@@ -143,7 +144,10 @@ export default function Dashboard() {
         </header>
         {!isListView && (
           <>
-            <UploadCard id="upload-card" onUploaded={handleUploaded} focusRequestId={uploadFocusRequestId} />
+            <div className={styles.inputs}>
+              <UploadCard id="upload-card" onUploaded={handleUploaded} focusRequestId={uploadFocusRequestId} />
+              <LiveRecorder onSaved={handleUploaded} />
+            </div>
             <section className={styles.stats} aria-label="Stats">
               <StatsCard
                 label="Recordings"

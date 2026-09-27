@@ -1,17 +1,9 @@
-# Password hashing and JWT issuing/verification, the only place passlib and jose are used.
+# JWT issuing/verification for the app's own session tokens, the only place jose signs tokens.
 import uuid
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from app.config import Settings, get_settings
 from app.utils.exceptions import AuthError
-_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-# Hashes a plain-text password with bcrypt before it ever reaches the database.
-def hash_password(password: str) -> str:
-    return _pwd_context.hash(password)
-# Checks a plain-text password against a stored bcrypt hash.
-def verify_password(password: str, hashed_password: str) -> bool:
-    return _pwd_context.verify(password, hashed_password)
 class AuthService:
     # Grabs the settings and refuses to start if no JWT signing key is configured.
     def __init__(self, settings: Settings | None = None):

@@ -2,14 +2,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
   getCurrentUser,
-  login as apiLogin,
+  loginWithGoogle as apiLoginWithGoogle,
   setAuthToken,
   setUnauthorizedHandler,
-  signup as apiSignup,
 } from "../services/api.js";
 const TOKEN_STORAGE_KEY = "audio-notes:token";
 const AuthContext = createContext(null);
-// Provides the auth state and the login, signup and logout actions to the whole app.
+// Provides the auth state and the Google sign-in and logout actions to the whole app.
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_STORAGE_KEY));
@@ -49,18 +48,9 @@ export function AuthProvider({ children }) {
       cancelled = true;
     };
   }, []);
-  const login = useCallback(
-    async (email, password) => {
-      const { access_token: accessToken } = await apiLogin(email, password);
-      persistToken(accessToken);
-      const me = await getCurrentUser();
-      setUser(me);
-    },
-    [persistToken]
-  );
-  const signup = useCallback(
-    async (email, password) => {
-      const { access_token: accessToken } = await apiSignup(email, password);
+  const loginWithGoogle = useCallback(
+    async (code) => {
+      const { access_token: accessToken } = await apiLoginWithGoogle(code);
       persistToken(accessToken);
       const me = await getCurrentUser();
       setUser(me);
@@ -68,8 +58,8 @@ export function AuthProvider({ children }) {
     [persistToken]
   );
   const value = useMemo(
-    () => ({ user, isAuthenticated: Boolean(user), isLoading, login, signup, logout }),
-    [user, isLoading, login, signup, logout]
+    () => ({ user, isAuthenticated: Boolean(user), isLoading, loginWithGoogle, logout }),
+    [user, isLoading, loginWithGoogle, logout]
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

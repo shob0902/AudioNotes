@@ -43,7 +43,7 @@ Upload a recording (2+ minutes) → **[Gnani Speech-to-Text](https://gnani.ai/sp
 
 ## ✨ Features
 
-- 🔐 Simple email/password accounts (JWT bearer tokens, no OAuth) — each account only ever sees its own recordings
+- 🔐 Sign in with Google (OAuth 2.0 / OpenID Connect, JWT bearer sessions) — each account only ever sees its own recordings
 - 📤 Drag-and-drop audio upload (MP3, WAV, M4A, AAC, OGG, FLAC)
 - ✅ Real validation: file size, format, empty files, and actual ffmpeg-decoded corruption checks — never trusts the file extension alone
 - ⚡ Non-blocking upload: the HTTP request returns immediately; all transcription/summarization happens in a background task
@@ -283,8 +283,8 @@ npm test
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/api/auth/signup` | Create an account. Returns a bearer token (auto-login). |
-| `POST` | `/api/auth/login` | Log in. Returns a bearer token. |
+| `GET` | `/api/auth/google/url?state=…` | Google consent-screen URL for the browser to redirect to. |
+| `POST` | `/api/auth/google` | Swap Google's one-time `code` for a bearer token (creates the account on first sign-in). |
 | `GET` | `/api/auth/me` | The logged-in user — used to restore a session. Requires auth. |
 | `POST` | `/api/notes` | Upload audio. Returns `202 { id, status: "queued" }` immediately. Requires auth. |
 | `GET` | `/api/notes` | List the current user's notes, newest first. Requires auth. |
@@ -295,7 +295,7 @@ npm test
 | `GET` | `/api/health` | Liveness check. |
 | `GET` | `/api/ready` | Readiness check (verifies Postgres connectivity). |
 
-All `/api/notes*` routes require an `Authorization: Bearer <token>` header from `/api/auth/login` or `/api/auth/signup`.
+All `/api/notes*` routes require an `Authorization: Bearer <token>` header from `/api/auth/google`.
 
 Interactive docs: `GET /docs` (Swagger UI) and `GET /redoc`.
 
@@ -449,7 +449,7 @@ curl https://<your-backend>.onrender.com/api/ready
 
 ## ⚠️ Known Limitations
 
-- Auth is intentionally minimal — email/password with no email verification or password reset flow. Fine for this project's scope; see "Future Improvements."
+- Auth is Google-only: there are no passwords to store, reset or leak; accounts are linked by verified Google email.
 - Favorites and checked-off action items still live in the browser's `localStorage` rather than the database (a holdover from before accounts existed), so they don't sync across devices for the same account.
 - Audio is fully decoded into memory for chunking (`pydub`), which is fine at the enforced `MAX_UPLOAD_SIZE_MB` but wouldn't scale to very large files without a streaming rewrite.
 - Gnani chunk transcription is sequential, not parallel, to keep chronological ordering simple — this is the right tradeoff at expected note lengths, but is a throughput ceiling for very long recordings.
@@ -460,7 +460,7 @@ curl https://<your-backend>.onrender.com/api/ready
 
 ## 🔮 Future Improvements
 
-- Password reset and email verification
+- More sign-in providers alongside Google
 - Move favorites/checked-action-items from localStorage onto the User/Note models so they sync across devices
 - Streaming upload for very large files
 - WebSocket/SSE push instead of polling, if scale ever warranted it

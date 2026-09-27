@@ -25,18 +25,23 @@ def run_note_processing(note_id: str) -> None:
     finally:
         db.close()
 # Downloads the audio, transcribes it, summarizes it, and marks the note failed on any error.
+# Notes that already carry a transcript (live mic notes, or a retry after a failed summary) skip straight to summarizing.
 def _run_pipeline(db, note: Note) -> None:
     note_id = str(note.id)
     try:
         _set_status(db, note, NoteStatus.PROCESSING)
-        storage = StorageService()
-        audio_bytes = storage.download_file(note.storage_key)
-        _set_status(db, note, NoteStatus.TRANSCRIBING)
-        extension = note.storage_key.rsplit(".", 1)[-1] if "." in note.storage_key else None
-        transcript = GnaniService().transcribe_audio(audio_bytes, note_id, extension=extension)
-        note.transcript = transcript
-        db.commit()
-        logger.info("note.transcribed", extra={"note_id": note_id, "transcript_length": len(transcript)})
+        transcript = note.transcript
+        if transcript and transcript.strip():
+            logger.info("note.transcription_skipped", extra={"note_id": note_id})
+        else:
+            storage = StorageService()
+            audio_bytes = storage.download_file(note.storage_key)
+            _set_status(db, note, NoteStatus.TRANSCRIBING)
+            extension = note.storage_key.rsplit(".", 1)[-1] if "." in note.storage_key else None
+            transcript = GnaniService().transcribe_audio(audio_bytes, note_id, extension=extension)
+            note.transcript = transcript
+            db.commit()
+            logger.info("note.transcribed", extra={"note_id": note_id, "transcript_length": len(transcript)})
         _set_status(db, note, NoteStatus.SUMMARIZING)
         summary = GroqService().summarize_transcript(transcript, note_id)
         note.summary = summary

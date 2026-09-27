@@ -1,4 +1,4 @@
-// Shared layout for the login and signup pages: giant headline on the left, the form panel on the right.
+// Shared layout for the sign-in page: giant headline on the left, the sign-in panel on the right.
 import styles from "./AuthLayout.module.css";
 // Renders the eyebrow and headline beside a white ruled panel holding the form and footer link.
 export default function AuthLayout({ eyebrow, headline, lead, children, footer }) {

@@ -158,8 +158,10 @@ const SECTIONS = [
     content: (
       <>
         <p>
-          A <code>users</code> table (UUID primary key, unique email, bcrypt-hashed password) backs simple
-          email/password auth — JWT bearer tokens, no OAuth, no server-side sessions. Every <code>notes</code> row
+          A <code>users</code> table (UUID primary key, unique email, Google subject id, name, avatar) backs Google
+          sign-in: the browser is redirected to Google, the backend swaps the returned one-time code for the verified
+          Google identity (using the client secret, server-side only), creates or links the account by email, and
+          issues the app&apos;s own JWT bearer token — no passwords stored, no server-side sessions. Every <code>notes</code> row
           has a required <code>user_id</code> foreign key (<code>ON DELETE CASCADE</code>), so each account only
           ever sees, lists, or can act on its own notes — every note route checks ownership and returns a plain 404
           (not 403) for another user's note, so its existence isn't leaked.
@@ -222,8 +224,8 @@ const SECTIONS = [
     content: (
       <ul>
         <li>
-          Password reset and email verification — signup/login is intentionally minimal today (no email sent
-          anywhere), which is fine for this project's scope but not for a real product.
+          More sign-in providers (e.g. Microsoft or GitHub) alongside Google, reusing the same account-linking by
+          verified email.
         </li>
         <li>
           Favorites and checked-off action items are still stored in the browser's localStorage rather than the

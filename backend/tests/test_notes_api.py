@@ -58,14 +58,9 @@ def test_get_note_not_found(client, auth_headers):
     response = client.get("/api/notes/00000000-0000-0000-0000-000000000000", headers=auth_headers)
     assert response.status_code == 404
 # Another user's note looks exactly like one that doesn't exist, and never shows up in their list.
-def test_note_is_not_visible_to_a_different_user(client, auth_headers):
+def test_note_is_not_visible_to_a_different_user(client, auth_headers, make_auth_headers):
     note_id = _upload(client, auth_headers).json()["id"]
-    other_user_headers = {
-        "Authorization": "Bearer "
-        + client.post("/api/auth/signup", json={"email": "someone-else@example.com", "password": "another-password"}).json()[
-            "access_token"
-        ]
-    }
+    other_user_headers = make_auth_headers("someone-else@example.com")
     response = client.get(f"/api/notes/{note_id}", headers=other_user_headers)
     assert response.status_code == 404
     response = client.get("/api/notes", headers=other_user_headers)

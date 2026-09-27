@@ -41,7 +41,7 @@ export default function Header() {
   const items = isAuthenticated ? AUTHED_NAV : GUEST_NAV;
   const cta = isAuthenticated
     ? { to: "/dashboard?action=upload", label: "Upload new" }
-    : { to: "/signup", label: "Get started" };
+    : { to: "/login", label: "Get started" };
   return (
     <>
       {!online && (

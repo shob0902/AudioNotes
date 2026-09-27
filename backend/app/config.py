@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     jwt_secret_key: str = ""
     jwt_algorithm: str = "HS256"
     jwt_expires_minutes: int = 60 * 24 * 7
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = "http://localhost:5173"
     gnani_api_key: str = ""
     gnani_api_url: str = "https://api.vachana.ai/stt/v3"
     gnani_language_code: str = "en-IN"

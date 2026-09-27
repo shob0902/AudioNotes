@@ -11,7 +11,9 @@ export default function StatsCard({ label, value, suffix = "", note }) {
         {display}
         {suffix}
       </p>
-      {note && <p className={styles.note}>{note}</p>}
+      <p className={styles.note} aria-hidden={note ? undefined : "true"}>
+        {note || " "}
+      </p>
     </div>
   );
 }
