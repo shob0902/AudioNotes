@@ -1,5 +1,6 @@
 // The settings page showing the signed-in account, a log-out button and some app information.
 import { Link, useNavigate } from "react-router-dom";
+import ApiKeysPanel from "../components/ApiKeysPanel.jsx";
 import Button from "../components/ui/Button.jsx";
 import { ArrowIcon } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -73,6 +74,7 @@ export default function Settings() {
           </Link>
         </section>
       </div>
+      <ApiKeysPanel />
     </div>
   );
 }

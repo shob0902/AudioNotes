@@ -7,6 +7,7 @@ from app.config import Settings, get_settings
 from app.database import get_db
 from app.models.user import User
 from app.schemas.auth import GoogleAuthUrlResponse, GoogleLoginRequest, TokenResponse, UserResponse
+from app.services.api_key_service import authenticate_api_key, is_api_key
 from app.services.auth_service import AuthService
 from app.services.google_oauth_service import GoogleIdentity, GoogleOAuthService
 from app.utils.exceptions import AuthError, TransientServiceError
@@ -14,24 +15,44 @@ from app.utils.logging import get_logger
 logger = get_logger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 _bearer_scheme = HTTPBearer(auto_error=False)
-# Pulls the caller's user id out of the bearer token without touching the database.
+# Builds the 401 every auth failure returns.
+def _unauthorized(detail: str) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail=detail,
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+# Pulls the caller's user id out of the bearer token. Session JWTs are checked without the database;
+# personal API keys (an_...) are looked up by hash.
 def get_current_user_id(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
+    db: Session = Depends(get_db),
+) -> uuid.UUID:
+    if credentials is None:
+        raise _unauthorized("Not authenticated.")
+    token = credentials.credentials
+    try:
+        if is_api_key(token):
+            return authenticate_api_key(db, token)
+        return AuthService().decode_access_token(token)
+    except AuthError as exc:
+        raise _unauthorized(exc.user_message) from exc
+# Like get_current_user_id but only accepts a browser session, so an API key can't be used to mint
+# or revoke other API keys if it leaks.
+def get_session_user_id(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
 ) -> uuid.UUID:
     if credentials is None:
+        raise _unauthorized("Not authenticated.")
+    if is_api_key(credentials.credentials):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated.",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="API keys can't manage API keys. Sign in on the website instead.",
         )
     try:
         return AuthService().decode_access_token(credentials.credentials)
     except AuthError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=exc.user_message,
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from exc
+        raise _unauthorized(exc.user_message) from exc
 # Loads the caller's full User row, for the few routes that need more than the id.
 def get_current_user(
     user_id: uuid.UUID = Depends(get_current_user_id),

@@ -1,0 +1,20 @@
+[project]
+name = "audionotes-mcp"
+version = "0.1.0"
+description = "MCP server for the AudioNotes platform: list, read, upload and summarize audio notes from Claude."
+readme = "README.md"
+authors = [
+    { name = "Shobhit Shourya", email = "shouryashobhit1@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.28.1",
+    "mcp[cli]>=2.3.0",
+]
+
+[project.scripts]
+audionotes-mcp = "audionotes_mcp:main"
+
+[build-system]
+requires = ["uv_build>=0.13.9,<0.14.0"]
+build-backend = "uv_build"

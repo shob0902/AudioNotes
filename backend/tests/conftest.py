@@ -22,6 +22,7 @@ from sqlalchemy.orm import sessionmaker
 from app.config import get_settings
 from app.database import Base, get_db
 from app.models import note as _note
+from app.models import api_key as _api_key
 from app.models import user as _user
 # Builds a tiny silent WAV in memory so no binary fixture files are needed in the repo.
 def make_wav_bytes(duration_seconds: float = 1.0, framerate: int = 8000) -> bytes:

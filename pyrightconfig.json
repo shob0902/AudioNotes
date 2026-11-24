@@ -1,0 +1,11 @@
+{
+  "executionEnvironments": [
+    {
+      "root": "mcp-server",
+      "extraPaths": ["mcp-server/.venv/Lib/site-packages"]
+    },
+    {
+      "root": "."
+    }
+  ]
+}

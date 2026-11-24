@@ -3,7 +3,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.config import get_settings
-from app.routes import auth, health, notes
+from app.routes import api_keys, auth, health, notes
 from app.utils.exceptions import AppError
 from app.utils.logging import configure_logging, get_logger
 configure_logging()
@@ -44,3 +44,4 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 app.include_router(health.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
 app.include_router(notes.router, prefix="/api")
+app.include_router(api_keys.router, prefix="/api")

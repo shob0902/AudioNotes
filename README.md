@@ -31,6 +31,7 @@ Upload a recording (2+ minutes) → **[Gnani Speech-to-Text](https://gnani.ai/sp
 - [✅ Prerequisites](#-prerequisites)
 - [🔑 Environment Variables](#-environment-variables)
 - [⚡ Local Setup & Running](#-local-setup--running)
+- [🤖 Use it from Claude Code (MCP)](#-use-it-from-claude-code-mcp)
 - [🧪 Testing](#-testing)
 - [📡 API Endpoints](#-api-endpoints)
 - [🛡️ Error Handling](#-error-handling)
@@ -136,6 +137,8 @@ audio-notes/
 │   ├── tests/                    pytest suite (mocked Gnani/Groq, no real API keys needed)
 │   ├── requirements.txt
 │   └── Dockerfile                 Includes ffmpeg
+│
+├── mcp-server/                  MCP server: use Audio Notes from Claude Code (see mcp-server/README.md)
 │
 ├── docker-compose.yml           Postgres (+ optional backend/frontend)
 ├── render.yaml                  Optional Render Blueprint
@@ -260,6 +263,22 @@ npm run dev
 
 ---
 
+## 🤖 Use it from Claude Code (MCP)
+
+`mcp-server/` is an [MCP](https://modelcontextprotocol.io) server that lets Claude Code (or any MCP client) list, read, upload, summarize, retry and delete your notes.
+
+1. Sign in, open **Settings → API keys**, and create a key.
+2. Run the command shown there. It looks like this (needs [uv](https://docs.astral.sh/uv/)):
+
+   ```bash
+   claude mcp add audionotes --scope user      -e AUDIONOTES_API_URL=https://<your-backend>      -e AUDIONOTES_API_KEY=an_...      -- uvx --from git+https://github.com/shob0902/AudioNotes#subdirectory=mcp-server audionotes-mcp
+   ```
+3. In Claude Code, run `/mcp` to confirm it's connected, then ask things like *"upload ~/meeting.mp3 and list the action items"*.
+
+Tools, local development and testing: see [`mcp-server/README.md`](mcp-server/README.md).
+
+---
+
 ## 🧪 Testing
 
 Backend (mocked Gnani/Groq — no real API keys required; the model/route tests need the local Postgres from docker-compose since `Note` uses Postgres-specific types):
@@ -292,10 +311,13 @@ npm test
 | `GET` | `/api/notes/{id}/status` | Lightweight status, for polling every 2-3s. Requires auth. |
 | `POST` | `/api/notes/{id}/retry` | Re-queue a failed note. Requires auth. |
 | `DELETE` | `/api/notes/{id}` | Delete a note and its stored audio. Requires auth. |
+| `GET` | `/api/api-keys` | List the user's personal API keys (name, prefix, last used). Browser session only. |
+| `POST` | `/api/api-keys` | Create a personal API key `{ name }`. The full key is returned **once**. Browser session only. |
+| `DELETE` | `/api/api-keys/{id}` | Revoke an API key; it stops working immediately. Browser session only. |
 | `GET` | `/api/health` | Liveness check. |
 | `GET` | `/api/ready` | Readiness check (verifies Postgres connectivity). |
 
-All `/api/notes*` routes require an `Authorization: Bearer <token>` header from `/api/auth/google`.
+All `/api/notes*` routes require an `Authorization: Bearer <token>` header, where the token is either the session token from `/api/auth/google` or a personal API key (`an_…`) created in **Settings → API keys**. API keys can't manage other API keys, so a leaked key can't mint more.
 
 Interactive docs: `GET /docs` (Swagger UI) and `GET /redoc`.
 

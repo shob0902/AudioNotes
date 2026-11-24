@@ -1,5 +1,7 @@
 // The only module that talks to the backend API; everything else calls these functions.
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+// The backend's origin without the /api suffix, which is what external clients like the MCP server are given.
+export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
 // Digs a readable message out of an error body, handling both plain and Pydantic detail shapes.
 async function readErrorMessage(response) {
   try {
@@ -103,4 +105,16 @@ export function retryNote(id) {
 // Deletes a note and its stored audio.
 export function deleteNote(id) {
   return request(`/notes/${id}`, { method: "DELETE" });
+}
+// Lists the user's personal API keys (names and prefixes only).
+export function listApiKeys() {
+  return request("/api-keys");
+}
+// Creates a personal API key; the response is the only time the full key is returned.
+export function createApiKey(name) {
+  return requestJson("/api-keys", { method: "POST", body: JSON.stringify({ name }) });
+}
+// Revokes a personal API key.
+export function revokeApiKey(id) {
+  return request(`/api-keys/${id}`, { method: "DELETE" });
 }
